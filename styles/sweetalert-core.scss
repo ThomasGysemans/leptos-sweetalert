@@ -1,0 +1,44 @@
+@import "variables.scss";
+
+.swal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(#000, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+
+    &[aria-hidden="false"] {
+        pointer-events: auto;
+        opacity: 1;
+    }
+}
+
+.swal-container {
+    display: flex;
+    justify-content: content;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 5px;
+    width: 60vw;
+    min-width: 200px;
+    max-width: 600px;
+    height: auto;
+    min-height: 200px;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    .swal-title {
+        color: $text-color;
+        font-size: 2.5em;
+    }
+
+    .swal-text {
+        font-weight: bold;
+    }
+}
