@@ -9,15 +9,16 @@ pub fn main() {
 
 #[component]
 fn App() -> impl IntoView {
-    let (options, set_options) = create_signal(Swal::default());
+    let on_click = move |_| {
+        Swal::fire(SwalOptions::basic("This is a title"));
+    };
 
     view! {
-        <SwalComponent options={options} setter={set_options} />
         <div>
             <h2>"EXAMPLES"</h2>
             <div>
                 <p>"A basic message"</p>
-                <button on:click=move |_| { set_options.update(|o| *o = Swal::basic("This is a title")) }>"Try me!"</button>
+                <button on:click=on_click>"Try me!"</button>
             </div>
         </div>
     }
