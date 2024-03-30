@@ -214,4 +214,24 @@ mod tests {
         assert_eq!(swal.show_confirm_button, true);
         assert_eq!(swal.open, false);
     }
+
+    #[test]
+    fn test_basic() {
+        let mut swal: Swal<&str> = Swal::basic("Hello");
+        assert_eq!(swal.title, "Hello");
+        assert_eq!(swal.text, "");
+        swal.to_basic("World");
+        assert_eq!(swal.title, "World");
+        assert_eq!(swal.text, "");
+    }
+
+    #[test]
+    fn test_close() {
+        let mut swal: Swal<&str> = Swal::default();
+        assert!(!swal.is_open());
+        swal.reopen();
+        assert!(swal.is_open());
+        swal.close();
+        assert!(!swal.is_open());
+    }
 }
