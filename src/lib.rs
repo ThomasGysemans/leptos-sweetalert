@@ -77,12 +77,17 @@ impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Swal<S> {
     ///
     /// ```
     /// # use leptos::*;
-    /// let (swal, set_swal) = create_signal(Swal::default());
+    /// # use leptos_sweetalert::*;
+    /// # use web_sys::MouseEvent;
+    ///
+    /// // Declaring the generic type explicitly won't be necessary
+    /// // most of the time in your project, but in a test I must set it.
+    /// let (swal, set_swal) = create_signal(Swal::<&str>::default());
     ///
     /// // This will display a swal with a simple title:
     /// // "The button was clicked."
-    /// let on_button_clicked = move |_| {
-    ///     set_swal.update(|c| c.basic("The button was clicked."));
+    /// let on_button_clicked = move |ev: MouseEvent| {
+    ///     set_swal.update(|c| *c = Swal::basic("The button was clicked."));
     /// };
     /// ```
     pub fn basic(title: S) -> Self {
@@ -91,6 +96,30 @@ impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Swal<S> {
             open: true,
             ..Self::default()
         }
+    }
+
+    /// Opens the swal with just a simple title.
+    /// Contrary to [basic], this will modify `self`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos::*;
+    /// # use leptos_sweetalert::*;
+    /// # use web_sys::MouseEvent;
+    ///
+    /// // Declaring the generic type explicitly won't be necessary
+    /// // most of the time in your project, but in a test I must set it.
+    /// let (swal, set_swal) = create_signal(Swal::<&str>::default());
+    ///
+    /// // This will display a swal with a simple title:
+    /// // "The button was clicked."
+    /// let on_button_clicked = move |ev: MouseEvent| {
+    ///     set_swal.update(|c| c.to_basic("The button was clicked."));
+    /// };
+    /// ```
+    pub fn to_basic(&mut self, title: S) {
+        *self = Self::basic(title);
     }
 
     /// Checks if the current swal is open.
@@ -122,10 +151,11 @@ impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Swal<S> {
 ///
 /// ```
 /// # use leptos::*;
+/// # use leptos_sweetalert::*;
 ///
 /// #[component]
 /// fn App() -> impl IntoView {
-///     let (swal, set_swal) = create_signal(Swal::default());
+///     let (swal, set_swal) = create_signal(Swal::<&str>::default());
 ///
 ///     // Include the component wherever you need it.
 ///     // There can be several of them, but it may lead
@@ -169,5 +199,19 @@ pub fn SwalComponent<S: AsRef<str> + Clone + Default + leptos::IntoView + 'stati
                 <p class="swal-text">{move || options.get().text}</p>
             </div>
         </div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_swal() {
+        let swal: Swal<&str> = Swal::default();
+        assert_eq!(swal.title, "");
+        assert_eq!(swal.text, "");
+        assert_eq!(swal.show_confirm_button, true);
+        assert_eq!(swal.open, false);
     }
 }
