@@ -34,19 +34,19 @@ impl std::fmt::Display for SwalIcon {
 
 /// Defines the parameters of a Sweet Alert.
 #[derive(Clone)]
-pub struct Swal {
+pub struct Swal<S: AsRef<str> + Clone + Default + leptos::IntoView> {
     /// Whether or not the alert is open.
     open: bool,
 
     /// The title of the alert.
     /// If its value is an empty string,
     /// no title will be displayed.
-    pub title: String,
+    pub title: S,
 
     /// A text or description to display below the title.
     /// If its value is an empty string,
     /// no description will be displayed.
-    pub text: String,
+    pub text: S,
 
     /// An icon to display above the title.
     /// By default, there is no icon, meaning
@@ -58,19 +58,19 @@ pub struct Swal {
     pub show_confirm_button: bool,
 }
 
-impl Default for Swal {
+impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Default for Swal<S> {
     fn default() -> Self {
         Self {
             open: false,
-            title: String::new(),
-            text: String::new(),
+            title: S::default(),
+            text: S::default(),
             icon: &SwalIcon::NONE,
             show_confirm_button: true,
         }
     }
 }
 
-impl Swal {
+impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Swal<S> {
     /// Opens the swal with just a simple title.
     ///
     /// # Example
@@ -85,7 +85,7 @@ impl Swal {
     ///     set_swal.update(|c| c.basic("The button was clicked."));
     /// };
     /// ```
-    pub fn basic(title: String) -> Self {
+    pub fn basic(title: S) -> Self {
         Self {
             title,
             open: true,
@@ -136,14 +136,14 @@ impl Swal {
 /// }
 /// ```
 #[component]
-pub fn SwalComponent(
-    /// The options of the a swal.
-    options: ReadSignal<Swal>,
+pub fn SwalComponent<S: AsRef<str> + Clone + Default + leptos::IntoView + 'static>(
+    /// The options of a swal.
+    options: ReadSignal<Swal<S>>,
 
-    /// The setter so that it is possible to
-    /// make changes to the parameters dynamically.
+    /// The setter of the signal so that it is 
+    /// possible to make changes to the parameters dynamically.
     /// It is necessary to make sure that the swal can be closed.
-    setter: WriteSignal<Swal>
+    setter: WriteSignal<Swal<S>>
 ) -> impl IntoView {
     let swal_container_ref = create_node_ref::<Div>();
     
