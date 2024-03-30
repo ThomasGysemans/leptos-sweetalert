@@ -61,8 +61,8 @@ impl std::fmt::Display for SwalIcon {
 ///     ..SwalOptions::default()
 /// };
 /// ```
-#[derive(Debug, Clone)]
-pub struct SwalOptions<S: AsRef<str> + Clone + Default + leptos::IntoView> {
+#[derive(Debug, Clone, Copy)]
+pub struct SwalOptions<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> {
     /// The title of the alert.
     /// If its value is an empty string,
     /// no title will be displayed.
@@ -83,7 +83,7 @@ pub struct SwalOptions<S: AsRef<str> + Clone + Default + leptos::IntoView> {
     pub show_confirm_button: bool,
 }
 
-impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Default for SwalOptions<S> {
+impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> Default for SwalOptions<S> {
     fn default() -> Self {
         Self {
             title: S::default(),
@@ -94,7 +94,7 @@ impl<S: AsRef<str> + Clone + Default + leptos::IntoView> Default for SwalOptions
     }
 }
 
-impl<S: AsRef<str> + Clone + Default + leptos::IntoView> SwalOptions<S> {
+impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> SwalOptions<S> {
     /// Creates Swal options for a simple alert with just a title.
     /// All other parameters are set to their default values.
     ///
@@ -112,6 +112,16 @@ impl<S: AsRef<str> + Clone + Default + leptos::IntoView> SwalOptions<S> {
             title,
             ..Self::default()
         }
+    }
+
+    /// Whether or not the current options have a title.
+    pub fn has_title(&self) -> bool {
+        !self.title.as_ref().is_empty()
+    }
+
+    /// Whether or not the current options have a text.
+    pub fn has_text(&self) -> bool {
+        !self.text.as_ref().is_empty()
     }
 }
 
@@ -132,7 +142,7 @@ pub mod Swal {
 
     /// Creates a Sweet Alert with the options defined in `opt`.
     /// See the docs for [SwalOptions](`#SwalOptions`) to know how to use it.
-    pub fn fire<S: AsRef<str> + Clone + Default + leptos::IntoView>(opt: SwalOptions<S>) {
+    pub fn fire<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static>(opt: SwalOptions<S>) {
         if let Some(swal) = get_swal() {
             swal.remove();
         }
@@ -181,7 +191,7 @@ pub mod Swal {
 
     fn SwalComponent<S>(opt: SwalOptions<S>) -> HtmlElement<AnyElement>
     where
-        S: AsRef<str> + Clone + Default + leptos::IntoView,
+        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
     {
         let swal_container_ref = create_node_ref::<Div>();
 
@@ -216,11 +226,20 @@ pub mod Swal {
             }
         };
 
+        let has_text = opt.has_text();
+
         (view! {
             <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" aria-hidden="true">
                 <div _ref=swal_container_ref class="swal-container">
-                    <strong class="swal-title">{opt.title}</strong>
-                    <p class="swal-text">{opt.text}</p>
+                    <strong>{opt.title}</strong>
+                    <Show when=move || has_text>
+                        <p>{opt.text}</p>
+                    </Show>
+                    <div>
+                        <Show when=move || opt.show_confirm_button>
+                            <button type="button">"Ok"</button>
+                        </Show>
+                    </div>
                 </div>
             </div>
         })

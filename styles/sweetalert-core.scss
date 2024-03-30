@@ -1,9 +1,10 @@
 @import "variables.scss";
 
+// the black overlay behind the box
 .swal-backdrop {
     position: fixed;
     inset: 0;
-    background-color: rgba(#000, .5);
+    background-color: $swal-backdrop-background-color;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,27 +19,63 @@
     }
 }
 
+// the box that contains the title, the text, etc.
 .swal-container {
     display: flex;
+    flex-direction: column;
     justify-content: content;
     align-items: center;
-    background-color: #fff;
-    border-radius: 5px;
-    width: 60vw;
-    min-width: 200px;
-    max-width: 600px;
-    height: auto;
-    min-height: 200px;
-    max-height: 600px;
+    background-color: $swal-container-background-color;
+    border-radius: $swal-container-border-radius;
+    width: $swal-container-width;
+    min-width: $swal-container-min-width;
+    max-width: $swal-container-max-width;
+    height: $swal-container-height;
+    min-height: $swal-container-min-height;
+    max-height: $swal-container-max-height;
     overflow-y: auto;
     overflow-x: hidden;
+    box-sizing: border-box;
+    padding: $swal-container-padding;
 
-    .swal-title {
-        color: $text-color;
-        font-size: 2.5em;
+    // the title
+    & > strong {
+        display: block;
+        color: $swal-text-color;
+        font-size: $swal-title-font-size;
+        text-align: center;
     }
 
-    .swal-text {
-        font-weight: bold;
+    // the text (description)
+    & > p {
+        margin: 20px 0;
+        text-align: center;
+        color: $swal-text-color;
+        font-size: $swal-text-font-size;
+    }
+
+    // the div that contains the buttons
+    // below the text (description)
+    & > div {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    // the buttons (confirm button, cancel, etc.)
+    & > div > button {
+        margin: 0 10px;
+        border: none;
+        cursor: pointer;
+        color: $swal-buttons-text-color;
+        font-size: $swal-buttons-font-size;
+        border-radius: $swal-buttons-border-radius;
+        background-color: $swal-buttons-background-color;
+        padding: $swal-buttons-padding;
+        box-sizing: border-box;
+
+        &:focus {
+            outline: 3px solid rgba($swal-buttons-background-color, .5);
+        }
     }
 }
