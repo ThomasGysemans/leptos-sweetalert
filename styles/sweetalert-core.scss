@@ -39,7 +39,7 @@
     padding: $swal-container-padding;
 
     // the title
-    & > strong {
+    &>strong {
         display: block;
         color: $swal-text-color;
         font-size: $swal-title-font-size;
@@ -47,7 +47,7 @@
     }
 
     // the text (description)
-    & > p {
+    &>p {
         margin: 20px 0;
         text-align: center;
         color: $swal-text-color;
@@ -56,14 +56,14 @@
 
     // the div that contains the buttons
     // below the text (description)
-    & > div {
+    &>div {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
     }
 
     // the buttons (confirm button, cancel, etc.)
-    & > div > button {
+    &>div>button {
         margin: 0 10px;
         border: none;
         cursor: pointer;
@@ -76,6 +76,182 @@
 
         &:focus {
             outline: 3px solid rgba($swal-buttons-background-color, .5);
+        }
+    }
+}
+
+.swal-container-icon {
+    animation: fadeIn 500ms forwards 1 ease-out;
+    width: $swal-icon-size;
+    height: $swal-icon-size;
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0
+        }
+
+        to {
+            opacity: 1
+        }
+    }
+
+    &,
+    svg.success-icon g {
+        animation: fillanim 300ms ease-in forwards 2s;
+
+        @keyframes fillanim {
+            from {
+                fill: transparent;
+            }
+
+            to {
+                fill: $swal-success-icon-color;
+            }
+        }
+    }
+
+    .success-icon {
+        width: inherit;
+        height: inherit;
+        stroke: $swal-success-icon-color;
+        stroke-width: $swal-success-stroke-width;
+        fill: transparent;
+
+        path {
+            stroke-dasharray: 800px;
+            stroke-dashoffset: 800px;
+            animation: lineanim 2s ease forwards;
+
+            @keyframes lineanim {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+        }
+    }
+
+    .swal-rounded-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: inherit;
+        height: inherit;
+        border-radius: 50%;
+        box-sizing: border-box;
+        animation: flip 300ms 1 ease-in forwards;
+
+        svg {
+            width: $swal-icon-size - 60px;
+            height: $swal-icon-size - 60px;
+        }
+
+        @keyframes flip {
+            from {
+                transform: rotateX(50deg);
+            }
+
+            to {
+                transform: rotateX(0deg);
+            }
+        }
+    }
+
+    .swal-warning-icon {
+        border: 5px solid $swal-warning-border-color;
+
+        svg {
+            animation: bouncing 300ms 200ms 1 ease-out forwards;
+
+            path {
+                fill: $swal-warning-mark-color;
+            }
+        }
+    }
+
+    .swal-error-icon {
+        border: 5px solid $swal-error-border-color;
+
+        svg {
+            opacity: 0;
+            transform: scale(0.5);
+            animation: expanding 400ms 200ms 1 ease-out forwards;
+
+            @keyframes expanding {
+                50% {
+                    opacity: 0.8;
+                }
+
+                60% {
+                    transform: scale(1.1);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1.0);
+                }
+            }
+        }
+
+        path {
+            fill: $swal-error-cross-color;
+        }
+    }
+
+    .swal-info-icon {
+        border: 5px solid $swal-info-border-color;
+
+        svg {
+            animation: bouncing 500ms 200ms 1 ease forwards;
+        }
+
+        path {
+            fill: $swal-info-mark-color;
+        }
+    }
+
+    .swal-question-icon {
+        border: 5px solid $swal-question-border-color;
+
+        svg {
+            opacity: 0;
+            transform: rotateY(90deg);
+            animation: rotate 400ms 200ms 1 ease-out forwards;
+
+            @keyframes rotate {
+                50% {
+                    opacity: 0.8;
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: rotateY(0deg);
+                }
+            }
+        }
+
+        path {
+            stroke: $swal-question-mark-color;
+            stroke-width: 2px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    @keyframes bouncing {
+        from {
+            transform: rotateZ(0deg);
+        }
+
+        20% {
+            transform: rotateZ(10deg);
+        }
+
+        50% {
+            transform: rotateZ(-10deg);
+        }
+
+        to {
+            transform: rotateZ(0);
         }
     }
 }
