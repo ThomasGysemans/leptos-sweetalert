@@ -117,9 +117,43 @@ impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> SwalOptions<S> {
         }
     }
 
+    /// Creates Swal options for a simple alert with a title and an icon.
+    /// All other parameters are set to their default values.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::SUCCESS);
+    /// assert_eq!(opts.title, "This is a title");
+    /// assert_eq!(opts.icon, &SwalIcon::SUCCESS);
+    /// ```
     pub fn basic_icon(title: S, icon: &'static SwalIcon) -> Self {
         Self {
             title,
+            icon,
+            ..Self::default()
+        }
+    }
+
+    /// Creates Swal options for a simple alert with a title, a text and an icon.
+    /// All other parameters are set to their default values.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let opts = SwalOptions::common("This is a title", "This is text", &SwalIcon::INFO);
+    /// assert_eq!(opts.title, "This is a title");
+    /// assert_eq!(opts.text, "This is text");
+    /// assert_eq!(opts.icon, &SwalIcon::INFO);
+    /// ```
+    pub fn common(title: S, text: S, icon: &'static SwalIcon) -> Self {
+        Self {
+            title,
+            text,
             icon,
             ..Self::default()
         }
@@ -136,6 +170,19 @@ impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> SwalOptions<S> {
     }
 
     /// Whether or not the current options have an icon.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::SUCCESS);
+    /// assert_eq!(opts.icon, &SwalIcon::SUCCESS);
+    /// assert!(opts.has_icon());
+    ///
+    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::NONE);
+    /// assert!(!opts.has_icon());
+    /// ```
     pub fn has_icon(&self) -> bool {
         self.icon != &SwalIcon::NONE
     }
@@ -371,5 +418,47 @@ mod tests {
         let opts = SwalOptions::<&str>::basic("Hello");
         assert_eq!(opts.title, "Hello");
         assert_eq!(opts.text, "");
+    }
+
+    #[test]
+    fn test_basic_icon() {
+        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::ERROR);
+        assert_eq!(opts.icon, &SwalIcon::ERROR);
+    }
+
+    #[test]
+    fn test_common() {
+        let opts = SwalOptions::<&str>::common("Hello", "World", &SwalIcon::ERROR);
+        assert_eq!(opts.title, "Hello");
+        assert_eq!(opts.text, "World");
+        assert_eq!(opts.icon, &SwalIcon::ERROR);
+    }
+
+    #[test]
+    fn test_has_icon() {
+        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::SUCCESS);
+        assert!(opts.has_icon());
+        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::NONE);
+        assert!(!opts.has_icon());
+    }
+
+    #[test]
+    fn test_has_text() {
+        let opts = SwalOptions::<&str>::common("Hello", "Some text", &SwalIcon::INFO);
+        assert!(opts.has_text());
+        let opts = SwalOptions::<&str>::basic("Hello");
+        assert!(!opts.has_text());
+    }
+
+    #[test]
+    fn test_has_title() {
+        let opts = SwalOptions::<&str>::basic("Hello");
+        assert!(opts.has_title());
+        let opts = SwalOptions {
+            title: "",
+            text: "Hello",
+            ..SwalOptions::default()
+        };
+        assert!(!opts.has_title());
     }
 }
