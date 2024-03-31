@@ -234,10 +234,70 @@ pub mod Swal {
         );
     }
 
+    /// Allows the user to close the alert by pressing the Escape key.
+    /// This method must be called only once, otherwise duplicated event
+    /// listeners will be created and attached to the window, which is
+    /// pointless and reduces performance.
+    ///
+    /// This method must be called in the main function of your program.
+    ///
+    /// It returns a handle that you can use to manually remove the event listener
+    /// by calling `remove()` on the return value. You probably won't need it but it
+    /// is there in case you need it.
+    pub fn init_escape_key_handler() -> leptos_dom::helpers::WindowListenerHandle {
+        window_event_listener(ev::keydown, |ev| {
+            if is_swal_open() {
+                let code = ev.code();
+                if code.eq("Escape") {
+                    close();
+                }
+            }
+        })
+    }
+
+    /// Checks if the Sweet Alert is currenlty open.
+    pub fn is_swal_open() -> bool {
+        get_swal().is_some()
+    }
+
+    /// Closes the alert and returns a boolean indicating if the action was successfull.
+    /// It will return `false` if the alert isn't opened.
+    pub fn close() -> bool {
+        if let Some(swal) = get_swal() {
+            // Here the goal is to remove the swal from the DOM
+            // as soon as the ending transition is over.
+            // My solution is to extract the transition duration
+            // from the computed styles and remove the node in a
+            // delayed closure (via set_timeout from leptos).
+            //
+            // Initially,
+            // I was going to listen to the "transitionend" event,
+            // but WebAssembly's only solution in my case would leak memory,
+            // as they so gently explain here:
+            // https://rustwasm.github.io/wasm-bindgen/examples/closures.html#srclibrs
+            // (which is awful and dumb)
+            swal.set_attribute("aria-hidden", "true")
+                .expect("Could not change the Swal's aria-hidden attribute.");
+            set_timeout(
+                || {
+                    if let Some(swal) = get_swal() {
+                        swal.remove()
+                    }
+                },
+                Duration::from_secs_f32(get_transition_duration(&swal)),
+            );
+            true
+        } else {
+            false
+        }
+    }
+
     fn get_swal() -> Option<Element> {
         document().get_element_by_id("swal")
     }
 
+    /// Gets the value of the "transition-duration" CSS property.
+    /// It is used to remove the Swal from the DOM once the animation is over.
     fn get_transition_duration(el: &Element) -> f32 {
         let css_value = window()
             .expect("Could not get window")
@@ -268,25 +328,7 @@ pub mod Swal {
                     let actual_target = target.dyn_ref::<web_sys::HtmlElement>();
                     if actual_target.is_some() {
                         if !container.contains(Some(actual_target.unwrap())) {
-                            // Here the goal is to remove the swal from the DOM
-                            // as soon as the ending transition is over.
-                            // My solution is to extract the transition duration
-                            // from the computed styles and remove the node in a
-                            // delayed closure (via set_timeout from leptos).
-                            //
-                            // Initially,
-                            // I was going to listen to the "transitionend" event,
-                            // but WebAssembly's only solution in my case would leak memory,
-                            // as they so gently explain here:
-                            // https://rustwasm.github.io/wasm-bindgen/examples/closures.html#srclibrs
-                            // (which is awful and dumb)
-                            let swal = get_swal().unwrap();
-                            swal.set_attribute("aria-hidden", "true")
-                                .expect("Could not change the Swal's aria-hidden attribute.");
-                            set_timeout(
-                                || get_swal().unwrap().remove(),
-                                Duration::from_secs_f32(get_transition_duration(&swal)),
-                            );
+                            close();
                         }
                     }
                 }
