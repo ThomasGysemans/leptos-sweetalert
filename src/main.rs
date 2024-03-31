@@ -1,5 +1,6 @@
 use leptos::*;
 use leptos_sweetalert::*;
+use log::info;
 
 pub fn main() {
     let _ = console_log::init_with_level(log::Level::Debug);
@@ -18,6 +19,12 @@ fn App() -> impl IntoView {
             confirm_button_text: "LETS GO",
             show_cancel_button: true,
             show_deny_button: true,
+            pre_confirm: || {
+                info!("Confirmed !!");
+            },
+            pre_deny: || {
+                info!("Denied !!!");
+            },
             ..SwalOptions::default()
         });
     };

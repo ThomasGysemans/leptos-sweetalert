@@ -31,6 +31,121 @@ impl std::fmt::Display for SwalIcon {
     }
 }
 
+/// The reasons why an alert has been closed.
+#[derive(Debug, PartialEq)]
+pub enum SwalDismissReason {
+    /// The user clicked the backdrop.
+    Backdrop,
+
+    /// The user clicked the cancel button.
+    Cancel,
+
+    /// The user clicked the close button.
+    Close,
+
+    /// The user clicked the Escape key.
+    Esc,
+}
+
+/// The data that is returned when an alert is closed.
+#[derive(Debug)]
+pub struct SwalResult {
+    /// The "Confirm" button was clicked, the value will contain the result.
+    pub is_confirmed: bool,
+
+    /// The "Deny" button was clicked, the value will be false.
+    pub is_denied: bool,
+
+    /// The "Cancel" button was clicked, the dismiss will be
+    /// [SwalDismissReason.Cancel](`#SwalDismissReason.Cancel`)
+    pub is_dismissed: bool,
+
+    /// The value from the popup, possible values:
+    /// - `true` for simple confirmed dialogs
+    /// - `false` for denied popups
+    pub value: bool,
+
+    /// The dismissal reason, see [SwalDismissReason](`#SwalDismissReason`).
+    /// It's optional because if the popup is confirmed, then it wasn't dismissed,
+    /// so no reason to specify a dismiss reason.
+    pub dismiss: Option<SwalDismissReason>,
+}
+
+impl SwalResult {
+    /// Creates a response that is the result of a confirmed popup.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let r = SwalResult::confirmed();
+    /// assert!(r.is_confirmed);
+    /// assert!(r.value);
+    /// assert!(!r.is_denied);
+    /// assert!(!r.is_dismissed);
+    /// assert!(r.dismiss.is_none());
+    /// ```
+    pub fn confirmed() -> Self {
+        Self {
+            is_confirmed: true,
+            value: true,
+            is_denied: false,
+            is_dismissed: false,
+            dismiss: None, 
+        }
+    }
+
+    /// Creates a response that is the result of a denied popup.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let r = SwalResult::denied();
+    /// assert!(!r.is_confirmed);
+    /// assert!(!r.value);
+    /// assert!(r.is_denied);
+    /// assert!(!r.is_dismissed);
+    /// assert!(r.dismiss.is_none());
+    /// ```
+    pub fn denied() -> Self {
+        Self {
+            is_confirmed: false,
+            value: false,
+            is_denied: true,
+            is_dismissed: false,
+            dismiss: None,
+        }
+    }
+
+    /// Creates a response that is the result of a cancelled popup.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use leptos_sweetalert::*;
+    ///
+    /// let r = SwalResult::canceled(SwalDismissReason::Backdrop);
+    /// assert!(!r.is_confirmed);
+    /// assert!(!r.value);
+    /// assert!(!r.is_denied);
+    /// assert!(r.is_dismissed);
+    /// assert!(r.dismiss.is_some());
+    /// assert!(r.dismiss.unwrap() == SwalDismissReason::Backdrop);
+    /// ```
+    pub fn canceled(reason: SwalDismissReason) -> Self {
+        Self {
+            is_confirmed: false,
+            value: false,
+            is_denied: false,
+            is_dismissed: true,
+            dismiss: Some(reason),
+        }
+    }
+}
+
 /// Defines the parameters of a Sweet Alert.
 /// It uses a generic parameter to allow you to use
 /// either a string slices or Strings for the value
@@ -65,7 +180,10 @@ impl std::fmt::Display for SwalIcon {
 /// };
 /// ```
 #[derive(Debug, Clone, Copy)]
-pub struct SwalOptions<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> {
+pub struct SwalOptions<S>
+where
+    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+{
     /// The title of the alert.
     /// If its value is an empty string,
     /// no title will be displayed.
@@ -104,9 +222,18 @@ pub struct SwalOptions<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView
     /// The label of the deny button.
     /// Defaults to "Deny".
     pub deny_button_text: S,
+
+    /// Function to execute before confirming.
+    pub pre_confirm: fn(),
+
+    /// Function to execute before denying.
+    pub pre_deny: fn(),
 }
 
-impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> Default for SwalOptions<S> {
+impl<S> Default for SwalOptions<S>
+where
+    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+{
     fn default() -> Self {
         Self {
             title: S::default(),
@@ -116,13 +243,18 @@ impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> Default for Swal
             show_deny_button: false,
             show_cancel_button: false,
             confirm_button_text: S::default(), // "Ok" is added maually
-            cancel_button_text: S::default(), // "Cancel" is added manually
-            deny_button_text: S::default(), // "Deny" is added manually
+            cancel_button_text: S::default(),  // "Cancel" is added manually
+            deny_button_text: S::default(),    // "Deny" is added manually
+            pre_confirm: || {},
+            pre_deny: || {},
         }
     }
 }
 
-impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> SwalOptions<S> {
+impl<S> SwalOptions<S>
+where
+    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+{
     /// Creates Swal options for a simple alert with just a title.
     /// All other parameters are set to their default values.
     ///
@@ -250,9 +382,10 @@ pub mod Swal {
 
     /// Creates a Sweet Alert with the options defined in `opt`.
     /// See the docs for [SwalOptions](`#SwalOptions`) to know how to use it.
-    pub fn fire<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static>(
-        opt: SwalOptions<S>,
-    ) {
+    pub fn fire<S>(opt: SwalOptions<S>)
+    where
+        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+    {
         if let Some(swal) = get_swal() {
             swal.remove();
         }
@@ -402,21 +535,21 @@ pub mod Swal {
                     </Show>
                     <div>
                         <Show when=move || opt.show_confirm_button>
-                            <button type="button" class="swal-confirm-button">
+                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); close(); }>
                                 <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
                                     { opt.confirm_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_deny_button>
-                            <button type="button" class="swal-deny-button">
+                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); close(); }>
                                 <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
                                     { opt.deny_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_cancel_button>
-                            <button type="button" class="swal-cancel-button">
+                            <button type="button" class="swal-cancel-button" on:click=move |_| { close(); }>
                                 <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
                                     { opt.cancel_button_text }
                                 </Show>
@@ -563,5 +696,21 @@ mod tests {
             ..SwalOptions::default()
         };
         assert!(!opts.has_title());
+    }
+
+    // We make sure that this test works by panicking voluntarily.
+    // It's the best way to know if the assert!(false) was called or not,
+    // within the `pre_confirm` callback.
+    #[test]
+    #[should_panic]
+    fn test_pre_confirm() {
+        let opts = SwalOptions {
+            title: "Confirm this!!",
+            pre_confirm: || {
+                assert!(false);
+            },
+            ..SwalOptions::default()
+        };
+        (opts.pre_confirm)();
     }
 }
