@@ -84,6 +84,26 @@ pub struct SwalOptions<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView
     /// Should the default confirmation button be displayed?
     /// It defaults to `true`.
     pub show_confirm_button: bool,
+
+    /// Should the deny button be displayed?
+    /// It defaults to `false`.
+    pub show_deny_button: bool,
+
+    /// Should the cancel button be displayed?
+    /// It defaults to `false`.
+    pub show_cancel_button: bool,
+
+    /// The label of the confirmation button.
+    /// Defaults to "Ok".
+    pub confirm_button_text: S,
+
+    /// The label of the cancel button.
+    /// Defaults to "Cancel".
+    pub cancel_button_text: S,
+
+    /// The label of the deny button.
+    /// Defaults to "Deny".
+    pub deny_button_text: S,
 }
 
 impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> Default for SwalOptions<S> {
@@ -93,6 +113,11 @@ impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> Default for Swal
             text: S::default(),
             icon: &SwalIcon::NONE,
             show_confirm_button: true,
+            show_deny_button: false,
+            show_cancel_button: false,
+            confirm_button_text: S::default(), // "Ok" is added maually
+            cancel_button_text: S::default(), // "Cancel" is added manually
+            deny_button_text: S::default(), // "Deny" is added manually
         }
     }
 }
@@ -167,6 +192,24 @@ impl<S: AsRef<str> + Clone + Copy + Default + leptos::IntoView> SwalOptions<S> {
     /// Whether or not the current options have a text.
     pub fn has_text(&self) -> bool {
         !self.text.as_ref().is_empty()
+    }
+
+    /// Checks if the given text for the confirmation button is empty.
+    /// If it's empty, it means the default value, "Ok", should be used instead.
+    pub fn has_confirm_button_text(&self) -> bool {
+        !self.confirm_button_text.as_ref().is_empty()
+    }
+
+    /// Checks if the given text for the deny button is empty.
+    /// If it's empty, it means the default value, "Deny", should be used instead.
+    pub fn has_deny_button_text(&self) -> bool {
+        !self.deny_button_text.as_ref().is_empty()
+    }
+
+    /// Checks if the given text for the cancel button is empty.
+    /// If it's empty, it means the default value, "Cancel", should be used instead.
+    pub fn has_cancel_button_text(&self) -> bool {
+        !self.cancel_button_text.as_ref().is_empty()
     }
 
     /// Whether or not the current options have an icon.
@@ -359,7 +402,25 @@ pub mod Swal {
                     </Show>
                     <div>
                         <Show when=move || opt.show_confirm_button>
-                            <button type="button">"Ok"</button>
+                            <button type="button" class="swal-confirm-button">
+                                <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
+                                    { opt.confirm_button_text }
+                                </Show>
+                             </button>
+                        </Show>
+                        <Show when=move || opt.show_deny_button>
+                            <button type="button" class="swal-deny-button">
+                                <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
+                                    { opt.deny_button_text }
+                                </Show>
+                             </button>
+                        </Show>
+                        <Show when=move || opt.show_cancel_button>
+                            <button type="button" class="swal-cancel-button">
+                                <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
+                                    { opt.cancel_button_text }
+                                </Show>
+                             </button>
                         </Show>
                     </div>
                 </div>

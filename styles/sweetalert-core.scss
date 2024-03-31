@@ -60,22 +60,42 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
+        justify-content: center;
     }
 
-    // the buttons (confirm button, cancel, etc.)
+    // the buttons (confirm button, deny, cancel)
     &>div>button {
-        margin: 0 10px;
+        margin: 0 5px 10px 5px;
         border: none;
         cursor: pointer;
         color: $swal-buttons-text-color;
         font-size: $swal-buttons-font-size;
         border-radius: $swal-buttons-border-radius;
-        background-color: $swal-buttons-background-color;
         padding: $swal-buttons-padding;
         box-sizing: border-box;
 
-        &:focus {
-            outline: 3px solid rgba($swal-buttons-background-color, .5);
+        &.swal-confirm-button {
+            background-color: $swal-confirm-button-background-color;
+
+            &:focus {
+                outline: 3px solid rgba($swal-confirm-button-background-color, .5);
+            }
+        }
+
+        &.swal-deny-button {
+            background-color: $swal-deny-button-background-color;
+
+            &:focus {
+                outline: 3px solid rgba($swal-deny-button-background-color, .5);
+            }
+        }
+
+        &.swal-cancel-button {
+            background-color: $swal-cancel-button-background-color;
+
+            &:focus {
+                outline: 3px solid rgba($swal-cancel-button-background-color, .5);
+            }
         }
     }
 }

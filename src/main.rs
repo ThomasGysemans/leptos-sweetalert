@@ -11,7 +11,15 @@ pub fn main() {
 #[component]
 fn App() -> impl IntoView {
     let success = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", &SwalIcon::SUCCESS));
+        Swal::fire(SwalOptions {
+            title: "This is a title",
+            text: "This is some text",
+            icon: &SwalIcon::SUCCESS,
+            confirm_button_text: "LETS GO",
+            show_cancel_button: true,
+            show_deny_button: true,
+            ..SwalOptions::default()
+        });
     };
 
     let warning = move |_| {
