@@ -20,6 +20,7 @@ fn App() -> impl IntoView {
             confirm_button_text: "LETS GO",
             show_cancel_button: true,
             show_deny_button: true,
+            animation: false,
             pre_confirm: || {
                 // This callback gets executed when the
                 // confirmation button is pressed.
@@ -52,7 +53,29 @@ fn App() -> impl IntoView {
     };
 
     let warning = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", &SwalIcon::WARNING));
+        Swal::fire(SwalOptions {
+            title: "This is a warning",
+            text: "It cannot be closed automatically. Use the Confirm button",
+            icon: &SwalIcon::WARNING,
+            show_deny_button: true,
+            deny_button_text: "Don't click that",
+
+            // The Swal cannot close itself anymore.
+            // You have to close it manually with:
+            // `Swal::close`.
+            auto_close: false,
+
+            pre_confirm: || {
+                Swal::close(Some(SwalResult::confirmed()));
+            },
+            pre_deny: || {
+                info!("This is executed every time the Deny button is pressed, but the popup remains.");
+            },
+            then: |result: SwalResult| {
+                info!("Swal was manually closed by the 'confirm' button and the result is {:?}", result);
+            },
+            ..SwalOptions::default()
+        });
     };
 
     let error = move |_| {

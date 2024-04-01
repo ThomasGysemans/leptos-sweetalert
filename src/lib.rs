@@ -233,6 +233,22 @@ where
     /// It will always get called no matter how
     /// the alert was dismissed.
     pub then: fn(SwalResult),
+
+    /// Should the alert close itself when a button is pressed
+    /// and when it is dismissed?
+    /// Defaults to `true`.
+    ///
+    /// Use this carefully as preventing someone from dismissing
+    /// a popup is considered bad practice, especially for
+    /// accessibility concerns.
+    pub auto_close: bool,
+
+    /// Should animate the popup?
+    /// A value of `false` will stop all animations,
+    /// including the opening and closing transitions
+    /// as well as the icon animations.
+    /// Defaults to `true`.
+    pub animation: bool,
 }
 
 impl<S> Default for SwalOptions<S>
@@ -253,6 +269,8 @@ where
             pre_confirm: || {},
             pre_deny: || {},
             then: |_| {},
+            auto_close: true,
+            animation: true,
         }
     }
 }
@@ -397,6 +415,12 @@ pub mod Swal {
         /// The point of this variable is to be able to execute the callback when the alert
         /// gets closed by something other than the "Cancel" button.
         static THEN_CALLBACK: RefCell<Option<fn(SwalResult)>> = const { RefCell::new(None) };
+
+        /// The "auto_close" parameter of the current options.
+        /// It has to be saved because we want to stop the user
+        /// from closing the popup even by pressing the Escape key
+        /// or by clicking on the backdrop.
+        static AUTO_CLOSE: RefCell<bool> = const { RefCell::new(true) };
     }
 
     /// Creates a Sweet Alert with the options defined in `opt`.
@@ -462,7 +486,9 @@ pub mod Swal {
             if is_swal_open() {
                 let code = ev.code();
                 if code.eq("Escape") {
-                    close(Some(SwalResult::canceled(SwalDismissReason::Esc)));
+                    if AUTO_CLOSE.with_borrow(|a| *a) {
+                        close(Some(SwalResult::canceled(SwalDismissReason::Esc)));
+                    }
                 }
             }
         })
@@ -484,6 +510,7 @@ pub mod Swal {
                 (then)(result);
             }
             THEN_CALLBACK.with(|c| *c.borrow_mut() = None);
+            AUTO_CLOSE.with(|a| *a.borrow_mut() = true);
         }
         if let Some(swal) = get_swal() {
             // Here the goal is to remove the swal from the DOM
@@ -556,7 +583,9 @@ pub mod Swal {
                     let actual_target = target.dyn_ref::<web_sys::HtmlElement>();
                     if actual_target.is_some() {
                         if !container.contains(Some(actual_target.unwrap())) {
-                            close(Some(SwalResult::canceled(SwalDismissReason::Backdrop)));
+                            if AUTO_CLOSE.with_borrow(|a| *a) {
+                                close(Some(SwalResult::canceled(SwalDismissReason::Backdrop)));
+                            }
                         }
                     }
                 }
@@ -566,6 +595,7 @@ pub mod Swal {
         let has_icon = opt.has_icon();
         let has_text = opt.has_text();
         let then_callback = opt.then.clone();
+        let auto_close = opt.auto_close.clone();
 
         // Here we copy the "then" callback and store it as a static variable.
         // The point of doing this is that it's the only way to detect whether or not
@@ -574,8 +604,16 @@ pub mod Swal {
         // reference, a copy does the trick just fine.
         THEN_CALLBACK.with(move |t| *t.borrow_mut() = Some(then_callback));
 
+        // We need to know if the developer has allowed
+        // the Escape key and the backdrop to close the popup.
+        AUTO_CLOSE.with(move |a| *a.borrow_mut() = auto_close);
+
+        let on_confirm = move |_| { (opt.pre_confirm)(); if opt.auto_close { (opt.then)(SwalResult::confirmed()); close(None); }; };
+        let on_deny = move |_| { (opt.pre_deny)(); if opt.auto_close { (opt.then)(SwalResult::denied()); close(None); }; };
+        let on_cancel = move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); if opt.auto_close { close(None); }; };
+
         (view! {
-            <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" aria-hidden="true">
+            <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" class:swal-no-animation={!opt.animation} aria-hidden="true">
                 <div _ref=swal_container_ref class="swal-container">
                     <Show when=move || has_icon>
                         <div class="swal-container-icon fade-icon">
@@ -595,21 +633,21 @@ pub mod Swal {
                     </Show>
                     <div>
                         <Show when=move || opt.show_confirm_button>
-                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); (opt.then)(SwalResult::confirmed()); close(None); }>
+                            <button type="button" class="swal-confirm-button" on:click=on_confirm>
                                 <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
                                     { opt.confirm_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_deny_button>
-                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); (opt.then)(SwalResult::denied()); close(None); }>
+                            <button type="button" class="swal-deny-button" on:click=on_deny>
                                 <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
                                     { opt.deny_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_cancel_button>
-                            <button type="button" class="swal-cancel-button" on:click=move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); close(None); }>
+                            <button type="button" class="swal-cancel-button" on:click=on_cancel>
                                 <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
                                     { opt.cancel_button_text }
                                 </Show>
