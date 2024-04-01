@@ -120,7 +120,7 @@ impl SwalResult {
         }
     }
 
-    /// Creates a response that is the result of a cancelled popup.
+    /// Creates a response that is the result of a canceled popup.
     ///
     /// # Example
     ///
@@ -228,6 +228,11 @@ where
 
     /// Function to execute before denying.
     pub pre_deny: fn(),
+
+    /// Function to execute when an alert ends.
+    /// It will always get called no matter how
+    /// the alert was dismissed.
+    pub then: fn(SwalResult),
 }
 
 impl<S> Default for SwalOptions<S>
@@ -247,6 +252,7 @@ where
             deny_button_text: S::default(),    // "Deny" is added manually
             pre_confirm: || {},
             pre_deny: || {},
+            then: |_| {},
         }
     }
 }
@@ -368,7 +374,7 @@ pub mod Swal {
     use std::cell::RefCell;
     use std::time::Duration;
 
-    use crate::SwalIcon;
+    use crate::{SwalDismissReason, SwalIcon, SwalResult};
 
     use super::SwalOptions;
     use leptos::html::{AnyElement, Div};
@@ -394,9 +400,12 @@ pub mod Swal {
         if let Some(swal) = get_swal() {
             // It has to be unsynced so that the current Swal can
             // finish closing and the DOM update itself.
-            set_timeout(move || {
-                open(opt);
-            }, Duration::from_secs_f32(0.01 + get_transition_duration(&swal)));
+            set_timeout(
+                move || {
+                    open(opt);
+                },
+                Duration::from_secs_f32(0.01 + get_transition_duration(&swal)),
+            );
         } else {
             open(opt);
         }
@@ -562,21 +571,21 @@ pub mod Swal {
                     </Show>
                     <div>
                         <Show when=move || opt.show_confirm_button>
-                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); close(); }>
+                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); (opt.then)(SwalResult::confirmed()); close(); }>
                                 <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
                                     { opt.confirm_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_deny_button>
-                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); close(); }>
+                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); (opt.then)(SwalResult::denied()); close(); }>
                                 <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
                                     { opt.deny_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_cancel_button>
-                            <button type="button" class="swal-cancel-button" on:click=move |_| { close(); }>
+                            <button type="button" class="swal-cancel-button" on:click=move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); close(); }>
                                 <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
                                     { opt.cancel_button_text }
                                 </Show>

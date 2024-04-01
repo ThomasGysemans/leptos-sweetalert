@@ -1,5 +1,5 @@
-use leptos::*;
 use leptos_sweetalert::*;
+use leptos::*;
 use log::info;
 
 pub fn main() {
@@ -12,6 +12,7 @@ pub fn main() {
 #[component]
 fn App() -> impl IntoView {
     let success = move |_| {
+        // Note: there is no async callbacks.
         Swal::fire(SwalOptions {
             title: "This is a title",
             text: "This is some text",
@@ -20,13 +21,34 @@ fn App() -> impl IntoView {
             show_cancel_button: true,
             show_deny_button: true,
             pre_confirm: || {
+                // This callback gets executed when the
+                // confirmation button is pressed.
                 info!("Confirmed !!");
             },
             pre_deny: || {
-                Swal::fire(SwalOptions::basic("OH MY GOD YOU DENIED !!"));
+                // Same as "pre_confirm" but for the "Deny" button.
+                Swal::fire(SwalOptions {
+                    title: "You denied!",
+                    then: |_| {
+                        // This will get executed after the "then"
+                        // of the parent swal.
+                        info!("Inner Swal was dismissed");
+                    },
+                    ..SwalOptions::default()
+                });
+            },
+            then: |result: SwalResult| {
+                // "pre_confirm" and "pre_deny" execute BEFORE "then". Hence the "pre" prefix.
+                // You don't actually need these functions since "then" contains the result
+                // from which you can know if the popup was confirmed or denied.
+                //
+                // Note: this will get executed before the "then" of the inner swal
+                // that is being open when the "Deny" button is pressed (look above).
+                info!("The result of this alert is {:?}", result);
             },
             ..SwalOptions::default()
         });
+        info!("This print statement will appear before the alert is dismissed.");
     };
 
     let warning = move |_| {
