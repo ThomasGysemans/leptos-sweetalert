@@ -1,35 +1,6 @@
-/// Defines an icon to be displayed in the Swal.
-/// Use the pre-built ones to make sure you don't
-/// accidentially make a mistake in the name of an icon.
-#[derive(Debug, PartialEq)]
-pub struct SwalIcon(&'static str);
-
-impl SwalIcon {
-    /// Shows an information icon (the letter "i" in a circle).
-    pub const INFO: Self = Self("info");
-
-    /// Shows an error icon (a cross).
-    pub const ERROR: Self = Self("error");
-
-    /// Shows a check (for a successfull operation).
-    pub const SUCCESS: Self = Self("success");
-
-    /// Shows a warning (an exclamation mark).
-    pub const WARNING: Self = Self("warning");
-
-    /// Shows a question mark
-    pub const QUESTION: Self = Self("question");
-
-    /// Shows no icon.
-    /// It is the default icon that a Swal will use.
-    pub const NONE: Self = Self("NONE");
-}
-
-impl std::fmt::Display for SwalIcon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+use leptos::*;
+use leptos::html::AnyElement;
+use leptos_dom::HtmlElement;
 
 /// The reasons why an alert has been closed.
 #[derive(Debug, PartialEq)]
@@ -677,14 +648,7 @@ pub mod Swal {
                 <div _ref=swal_container_ref class="swal-container">
                     <Show when=move || has_icon>
                         <div class="swal-container-icon fade-icon">
-                            {move || match opt.icon {
-                                &SwalIcon::SUCCESS => SuccessIcon(),
-                                &SwalIcon::WARNING => WarningIcon(),
-                                &SwalIcon::ERROR => ErrorIcon(),
-                                &SwalIcon::INFO => InfoIcon(),
-                                &SwalIcon::QUESTION => QuestionIcon(),
-                                _ => view! { <div /> }.into_any()
-                            }}
+                            {opt.icon.get_icon_element()}
                         </div>
                     </Show>
                     <strong>{opt.title}</strong>
@@ -721,8 +685,54 @@ pub mod Swal {
         .into_html_element()
         .expect("Could not create Swal component")
     }
+}
 
-    fn SuccessIcon() -> HtmlElement<AnyElement> {
+/// Defines an icon to be displayed in the Swal.
+/// Use the pre-built ones to make sure you don't
+/// accidentially make a mistake in the name of an icon.
+#[derive(Debug, PartialEq)]
+pub struct SwalIcon(&'static str);
+
+impl SwalIcon {
+    /// Shows an information icon (the letter "i" in a circle).
+    pub const INFO: Self = Self("info");
+
+    /// Shows an error icon (a cross).
+    pub const ERROR: Self = Self("error");
+
+    /// Shows a check (for a successfull operation).
+    pub const SUCCESS: Self = Self("success");
+
+    /// Shows a warning (an exclamation mark).
+    pub const WARNING: Self = Self("warning");
+
+    /// Shows a question mark
+    pub const QUESTION: Self = Self("question");
+
+    /// Shows no icon.
+    /// It is the default icon that a Swal will use.
+    pub const NONE: Self = Self("NONE");
+}
+
+impl std::fmt::Display for SwalIcon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl SwalIcon {
+    pub fn get_icon_element(&self) -> HtmlElement<AnyElement> {
+        match self {
+            &SwalIcon::SUCCESS => SwalIcon::success_icon(),
+            &SwalIcon::WARNING => SwalIcon::warning_icon(),
+            &SwalIcon::QUESTION => SwalIcon::question_icon(),
+            &SwalIcon::ERROR => SwalIcon::error_icon(),
+            &SwalIcon::INFO => SwalIcon::info_icon(),
+            _ => SwalIcon::none_icon(),
+        }
+    }
+
+    fn success_icon() -> HtmlElement<AnyElement> {
         (view! {
             <svg
                 class="success-icon"
@@ -738,7 +748,7 @@ pub mod Swal {
         .expect("Could not create Success Icon")
     }
 
-    fn WarningIcon() -> HtmlElement<AnyElement> {
+    fn warning_icon() -> HtmlElement<AnyElement> {
         (view! {
             <div class="swal-rounded-icon swal-warning-icon">
                 <svg viewBox="0 0 6 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -752,7 +762,7 @@ pub mod Swal {
         .expect("Could not create Warning Icon")
     }
 
-    fn ErrorIcon() -> HtmlElement<AnyElement> {
+    fn error_icon() -> HtmlElement<AnyElement> {
         (view! {
             <div class="swal-rounded-icon swal-error-icon">
                 <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -766,7 +776,7 @@ pub mod Swal {
         .expect("Could not create Warning Icon")
     }
 
-    fn InfoIcon() -> HtmlElement<AnyElement> {
+    fn info_icon() -> HtmlElement<AnyElement> {
         (view! {
             <div class="swal-rounded-icon swal-info-icon">
                 <svg viewBox="0 0 4 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -779,7 +789,7 @@ pub mod Swal {
         .expect("Could not create Warning Icon")
     }
 
-    fn QuestionIcon() -> HtmlElement<AnyElement> {
+    fn question_icon() -> HtmlElement<AnyElement> {
         (view! {
             <div class="swal-rounded-icon swal-question-icon">
                 <svg viewBox="0 0 11 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -791,6 +801,13 @@ pub mod Swal {
         .into_view()
         .into_html_element()
         .expect("Could not create Warning Icon")
+    }
+
+    fn none_icon() -> HtmlElement<AnyElement> {
+        (view! { <div /> })
+            .into_view()
+            .into_html_element()
+            .expect("Could not display empty icon")
     }
 }
 

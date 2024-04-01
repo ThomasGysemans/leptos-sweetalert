@@ -20,7 +20,6 @@ fn App() -> impl IntoView {
             confirm_button_text: "LETS GO",
             show_cancel_button: true,
             show_deny_button: true,
-            animation: false,
             pre_confirm: || {
                 // This callback gets executed when the
                 // confirmation button is pressed.
