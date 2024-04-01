@@ -41,6 +41,13 @@ pub enum SwalDismissReason {
     Cancel,
 
     /// The user clicked the close button.
+    ///
+    /// This member is actually not used by
+    /// this crate, but it is provided for
+    /// you if you decide to manually close
+    /// the alert for some reason, and need
+    /// a way to detect that you did that
+    /// programmatically.
     Close,
 
     /// The user clicked the Escape key.
@@ -400,7 +407,7 @@ pub mod Swal {
     use leptos_dom::HtmlElement;
 
     use web_sys::wasm_bindgen::JsCast;
-    use web_sys::{window, Element, MouseEvent};
+    use web_sys::{window, Element, HtmlCollection, MouseEvent};
 
     #[allow(unused)]
     use log::info;
@@ -483,7 +490,7 @@ pub mod Swal {
     /// is there in case you need it.
     pub fn init_escape_key_handler() -> leptos_dom::helpers::WindowListenerHandle {
         window_event_listener(ev::keydown, |ev| {
-            if is_swal_open() {
+            if is_open() {
                 let code = ev.code();
                 if code.eq("Escape") {
                     if AUTO_CLOSE.with_borrow(|a| *a) {
@@ -494,8 +501,8 @@ pub mod Swal {
         })
     }
 
-    /// Checks if the Sweet Alert is currenlty open.
-    pub fn is_swal_open() -> bool {
+    /// Checks if the Sweet Alert is currently open.
+    pub fn is_open() -> bool {
         get_swal().is_some()
     }
 
@@ -540,8 +547,42 @@ pub mod Swal {
         }
     }
 
-    fn get_swal() -> Option<Element> {
+    /// Gets the WebSys Element for the popup from the DOM.
+    pub fn get_swal() -> Option<Element> {
         document().get_element_by_id("swal")
+    }
+
+    /// Gets the WebSys HtmlCollection for the confirmation button from the DOM.
+    /// It returns an HtmlCollection because the button has a class, and by
+    /// definition a class can be attached to several elements, therefore
+    /// there is no other way that returning an HtmlCollection.
+    /// If things are done right, then this should return a
+    /// collection of one element, and this element should be
+    /// the expected button.
+    pub fn get_confirm_button() -> HtmlCollection {
+        document().get_elements_by_class_name("swal-confirm-button")
+    }
+
+    /// Gets the WebSys HtmlCollection for the "deny" button from the DOM.
+    /// It returns an HtmlCollection because the button has a class, and by
+    /// definition a class can be attached to several elements, therefore
+    /// there is no other way that returning an HtmlCollection.
+    /// If things are done right, then this should return a
+    /// collection of one element, and this element should be
+    /// the expected button.
+    pub fn get_deny_button() -> HtmlCollection {
+        document().get_elements_by_class_name("swal-deny-button")
+    }
+
+    /// Gets the WebSys HtmlCollection for the "cancel" button from the DOM.
+    /// It returns an HtmlCollection because the button has a class, and by
+    /// definition a class can be attached to several elements, therefore
+    /// there is no other way that returning an HtmlCollection.
+    /// If things are done right, then this should return a
+    /// collection of one element, and this element should be
+    /// the expected button.
+    pub fn get_cancel_button() -> HtmlCollection {
+        document().get_elements_by_class_name("swal-cancel-button")
     }
 
     /// Gets the value of the "transition-duration" CSS property.
@@ -573,7 +614,7 @@ pub mod Swal {
 
     fn SwalComponent<S>(opt: SwalOptions<S>) -> HtmlElement<AnyElement>
     where
-        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static
+        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
     {
         let swal_container_ref = create_node_ref::<Div>();
 
@@ -608,9 +649,28 @@ pub mod Swal {
         // the Escape key and the backdrop to close the popup.
         AUTO_CLOSE.with(move |a| *a.borrow_mut() = auto_close);
 
-        let on_confirm = move |_| { (opt.pre_confirm)(); if opt.auto_close { (opt.then)(SwalResult::confirmed()); close(None); }; };
-        let on_deny = move |_| { (opt.pre_deny)(); if opt.auto_close { (opt.then)(SwalResult::denied()); close(None); }; };
-        let on_cancel = move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); if opt.auto_close { close(None); }; };
+        let on_confirm = move |_| {
+            (opt.pre_confirm)();
+            if opt.auto_close {
+                (opt.then)(SwalResult::confirmed());
+                close(None);
+            };
+        };
+
+        let on_deny = move |_| {
+            (opt.pre_deny)();
+            if opt.auto_close {
+                (opt.then)(SwalResult::denied());
+                close(None);
+            };
+        };
+
+        let on_cancel = move |_| {
+            (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel));
+            if opt.auto_close {
+                close(None);
+            };
+        };
 
         (view! {
             <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" class:swal-no-animation={!opt.animation} aria-hidden="true">
@@ -811,7 +871,7 @@ mod tests {
         };
         (opts.pre_confirm)();
     }
-    
+
     #[test]
     #[should_panic]
     fn test_pre_deny() {
