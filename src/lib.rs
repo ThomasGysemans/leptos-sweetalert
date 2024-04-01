@@ -388,7 +388,15 @@ pub mod Swal {
     use log::info;
 
     thread_local! {
+        /// The duration of the transition that opens and closes the swal.
+        /// It is stored this way to avoid re-doing the calculations again and again
+        /// every time that a swal is being opened or closed.
         static TRANSITION_DURATION: RefCell<f32> = const { RefCell::new(-1.0) };
+
+        /// This is a copy of the "then" callback that was given to the current alert.
+        /// The point of this variable is to be able to execute the callback when the alert
+        /// gets closed by something other than the "Cancel" button.
+        static THEN_CALLBACK: RefCell<Option<fn(SwalResult)>> = const { RefCell::new(None) };
     }
 
     /// Creates a Sweet Alert with the options defined in `opt`.
@@ -454,7 +462,7 @@ pub mod Swal {
             if is_swal_open() {
                 let code = ev.code();
                 if code.eq("Escape") {
-                    close();
+                    close(Some(SwalResult::canceled(SwalDismissReason::Esc)));
                 }
             }
         })
@@ -467,7 +475,16 @@ pub mod Swal {
 
     /// Closes the alert and returns a boolean indicating if the action was successfull.
     /// It will return `false` if the alert isn't opened.
-    pub fn close() -> bool {
+    /// It will trigger a copy of the current alert's "then" callback.
+    ///
+    /// Closing a popup without mentioning a result will not trigger the "then" callback.
+    pub fn close(result: Option<SwalResult>) -> bool {
+        if let Some(then) = THEN_CALLBACK.with_borrow(|t| *t) {
+            if let Some(result) = result {
+                (then)(result);
+            }
+            THEN_CALLBACK.with(|c| *c.borrow_mut() = None);
+        }
         if let Some(swal) = get_swal() {
             // Here the goal is to remove the swal from the DOM
             // as soon as the ending transition is over.
@@ -475,8 +492,7 @@ pub mod Swal {
             // from the computed styles and remove the node in a
             // delayed closure (via set_timeout from leptos).
             //
-            // Initially,
-            // I was going to listen to the "transitionend" event,
+            // Initially I was going to listen to the "transitionend" event,
             // but WebAssembly's only solution in my case would leak memory,
             // as they so gently explain here:
             // https://rustwasm.github.io/wasm-bindgen/examples/closures.html#srclibrs
@@ -530,7 +546,7 @@ pub mod Swal {
 
     fn SwalComponent<S>(opt: SwalOptions<S>) -> HtmlElement<AnyElement>
     where
-        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static
     {
         let swal_container_ref = create_node_ref::<Div>();
 
@@ -540,7 +556,7 @@ pub mod Swal {
                     let actual_target = target.dyn_ref::<web_sys::HtmlElement>();
                     if actual_target.is_some() {
                         if !container.contains(Some(actual_target.unwrap())) {
-                            close();
+                            close(Some(SwalResult::canceled(SwalDismissReason::Backdrop)));
                         }
                     }
                 }
@@ -549,6 +565,14 @@ pub mod Swal {
 
         let has_icon = opt.has_icon();
         let has_text = opt.has_text();
+        let then_callback = opt.then.clone();
+
+        // Here we copy the "then" callback and store it as a static variable.
+        // The point of doing this is that it's the only way to detect whether or not
+        // the Escape key was pressed (or if the backdrop was clicked) when closing the
+        // alert. We need a way to execute this callback, and since it cannot be a
+        // reference, a copy does the trick just fine.
+        THEN_CALLBACK.with(move |t| *t.borrow_mut() = Some(then_callback));
 
         (view! {
             <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" aria-hidden="true">
@@ -571,21 +595,21 @@ pub mod Swal {
                     </Show>
                     <div>
                         <Show when=move || opt.show_confirm_button>
-                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); (opt.then)(SwalResult::confirmed()); close(); }>
+                            <button type="button" class="swal-confirm-button" on:click=move |_| { (opt.pre_confirm)(); (opt.then)(SwalResult::confirmed()); close(None); }>
                                 <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
                                     { opt.confirm_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_deny_button>
-                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); (opt.then)(SwalResult::denied()); close(); }>
+                            <button type="button" class="swal-deny-button" on:click=move |_| { (opt.pre_deny)(); (opt.then)(SwalResult::denied()); close(None); }>
                                 <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
                                     { opt.deny_button_text }
                                 </Show>
                              </button>
                         </Show>
                         <Show when=move || opt.show_cancel_button>
-                            <button type="button" class="swal-cancel-button" on:click=move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); close(); }>
+                            <button type="button" class="swal-cancel-button" on:click=move |_| { (opt.then)(SwalResult::canceled(SwalDismissReason::Cancel)); close(None); }>
                                 <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
                                     { opt.cancel_button_text }
                                 </Show>
@@ -748,5 +772,18 @@ mod tests {
             ..SwalOptions::default()
         };
         (opts.pre_confirm)();
+    }
+    
+    #[test]
+    #[should_panic]
+    fn test_pre_deny() {
+        let opts = SwalOptions {
+            title: "Deny this!!",
+            pre_deny: || {
+                assert!(false);
+            },
+            ..SwalOptions::default()
+        };
+        (opts.pre_deny)();
     }
 }

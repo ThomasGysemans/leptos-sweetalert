@@ -29,10 +29,10 @@ fn App() -> impl IntoView {
                 // Same as "pre_confirm" but for the "Deny" button.
                 Swal::fire(SwalOptions {
                     title: "You denied!",
-                    then: |_| {
+                    then: |result: SwalResult| {
                         // This will get executed after the "then"
                         // of the parent swal.
-                        info!("Inner Swal was dismissed");
+                        info!("Inner Swal was dismissed with result {:?}", result);
                     },
                     ..SwalOptions::default()
                 });
