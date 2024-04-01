@@ -1,5 +1,5 @@
-use leptos::*;
 use leptos::html::AnyElement;
+use leptos::*;
 use leptos_dom::HtmlElement;
 
 /// The reasons why an alert has been closed.
@@ -138,29 +138,26 @@ impl SwalResult {
 ///
 /// // Use methods to reduce the amount
 /// // of fields you have to manually assign
-/// // for this struct.
-/// // In this case, the generic type (`S`) is deduced
-/// // from the parameter, which is a `&'static str`.
-/// let opt = SwalOptions::basic("This is a title");
-///
-/// // This is equivalent to the above.
-/// // It may be useful in some cases when
-/// // the compiler is unable to infer the
-/// // type of `S`.
-/// let opt = SwalOptions::<&'static str>::basic("This is a title");
+/// //
+/// // In this case, the generic parameter `S` cannot
+/// // be deduced from the parameter (not sure why).
+/// // However the second parameter `I` can, which
+/// // defaults to `SwalIcon` (and ultimately to `SwalIcon::NONE`).
+/// let opt = SwalOptions::<&str>::basic("This is a title");
 ///
 /// // Look at the methods for a better developer experience.
 /// // However, if you want to fully customize the parameters
 /// // in a way that the methods doesn't allow you to, then use:
-/// let opt = SwalOptions {
+/// let opt = SwalOptions::<&str> {
 ///     title: "This is a title",
 ///     ..SwalOptions::default()
 /// };
 /// ```
 #[derive(Debug, Clone, Copy)]
-pub struct SwalOptions<S>
+pub struct SwalOptions<S = &'static str, I = SwalIcon>
 where
     S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    I: SwalIconLike + Default + Clone + Copy,
 {
     /// The title of the alert.
     /// If its value is an empty string,
@@ -175,7 +172,7 @@ where
     /// An icon to display above the title.
     /// By default, there is no icon, meaning
     /// the value of this property is `&SwalIcon::NONE`.
-    pub icon: &'static SwalIcon,
+    pub icon: I,
 
     /// Should the default confirmation button be displayed?
     /// It defaults to `true`.
@@ -229,15 +226,16 @@ where
     pub animation: bool,
 }
 
-impl<S> Default for SwalOptions<S>
+impl<S, I> Default for SwalOptions<S, I>
 where
     S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    I: SwalIconLike + Default + Clone + Copy,
 {
     fn default() -> Self {
         Self {
             title: S::default(),
             text: S::default(),
-            icon: &SwalIcon::NONE,
+            icon: I::default(),
             show_confirm_button: true,
             show_deny_button: false,
             show_cancel_button: false,
@@ -253,9 +251,10 @@ where
     }
 }
 
-impl<S> SwalOptions<S>
+impl<S, I> SwalOptions<S, I>
 where
     S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    I: SwalIconLike + Default + Clone + Copy,
 {
     /// Creates Swal options for a simple alert with just a title.
     /// All other parameters are set to their default values.
@@ -265,9 +264,10 @@ where
     /// ```
     /// # use leptos_sweetalert::*;
     ///
-    /// let opts = SwalOptions::basic("This is a title");
+    /// let opts = SwalOptions::<&str>::basic("This is a title");
     /// assert_eq!(opts.title, "This is a title");
     /// assert_eq!(opts.text, ""); // see default values.
+    /// assert_eq!(opts.icon, SwalIcon::NONE);
     /// ```
     pub fn basic(title: S) -> Self {
         Self {
@@ -284,11 +284,11 @@ where
     /// ```
     /// # use leptos_sweetalert::*;
     ///
-    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::SUCCESS);
+    /// let opts = SwalOptions::basic_icon("This is a title", SwalIcon::SUCCESS);
     /// assert_eq!(opts.title, "This is a title");
-    /// assert_eq!(opts.icon, &SwalIcon::SUCCESS);
+    /// assert_eq!(opts.icon, SwalIcon::SUCCESS);
     /// ```
-    pub fn basic_icon(title: S, icon: &'static SwalIcon) -> Self {
+    pub fn basic_icon(title: S, icon: I) -> Self {
         Self {
             title,
             icon,
@@ -304,12 +304,12 @@ where
     /// ```
     /// # use leptos_sweetalert::*;
     ///
-    /// let opts = SwalOptions::common("This is a title", "This is text", &SwalIcon::INFO);
+    /// let opts = SwalOptions::common("This is a title", "This is text", SwalIcon::INFO);
     /// assert_eq!(opts.title, "This is a title");
     /// assert_eq!(opts.text, "This is text");
-    /// assert_eq!(opts.icon, &SwalIcon::INFO);
+    /// assert_eq!(opts.icon, SwalIcon::INFO);
     /// ```
-    pub fn common(title: S, text: S, icon: &'static SwalIcon) -> Self {
+    pub fn common(title: S, text: S, icon: I) -> Self {
         Self {
             title,
             text,
@@ -345,24 +345,6 @@ where
     pub fn has_cancel_button_text(&self) -> bool {
         !self.cancel_button_text.as_ref().is_empty()
     }
-
-    /// Whether or not the current options have an icon.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use leptos_sweetalert::*;
-    ///
-    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::SUCCESS);
-    /// assert_eq!(opts.icon, &SwalIcon::SUCCESS);
-    /// assert!(opts.has_icon());
-    ///
-    /// let opts = SwalOptions::basic_icon("This is a title", &SwalIcon::NONE);
-    /// assert!(!opts.has_icon());
-    /// ```
-    pub fn has_icon(&self) -> bool {
-        self.icon != &SwalIcon::NONE
-    }
 }
 
 #[allow(non_snake_case)]
@@ -370,7 +352,7 @@ pub mod Swal {
     use std::cell::RefCell;
     use std::time::Duration;
 
-    use crate::{SwalDismissReason, SwalIcon, SwalResult};
+    use crate::{SwalDismissReason, SwalIconLike, SwalResult};
 
     use super::SwalOptions;
     use leptos::html::{AnyElement, Div};
@@ -403,9 +385,10 @@ pub mod Swal {
 
     /// Creates a Sweet Alert with the options defined in `opt`.
     /// See the docs for [SwalOptions](`#SwalOptions`) to know how to use it.
-    pub fn fire<S>(opt: SwalOptions<S>)
+    pub fn fire<S, I>(opt: SwalOptions<S, I>)
     where
         S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         if let Some(swal) = get_swal() {
             // It has to be unsynced so that the current Swal can
@@ -424,9 +407,10 @@ pub mod Swal {
     /// Creates the Swal, adds it to the DOM and sets its aria-hidden
     /// attribute to "false" so that the animation can start once the
     /// DOM was updated.
-    fn open<S>(opt: SwalOptions<S>)
+    fn open<S, I>(opt: SwalOptions<S, I>)
     where
         S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         document()
             .body()
@@ -583,9 +567,10 @@ pub mod Swal {
         }
     }
 
-    fn SwalComponent<S>(opt: SwalOptions<S>) -> HtmlElement<AnyElement>
+    fn SwalComponent<S, I>(opt: SwalOptions<S, I>) -> HtmlElement<AnyElement>
     where
         S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         let swal_container_ref = create_node_ref::<Div>();
 
@@ -604,7 +589,7 @@ pub mod Swal {
             }
         };
 
-        let has_icon = opt.has_icon();
+        let has_icon = opt.icon.is_defined();
         let has_text = opt.has_text();
         let then_callback = opt.then.clone();
         let auto_close = opt.auto_close.clone();
@@ -687,10 +672,103 @@ pub mod Swal {
     }
 }
 
+/// Defines the methods that a struct must have
+/// to be considered as an Icon in the Swal.
+///
+/// Use it to create your own icons.
+///
+/// # Example
+///
+/// ```
+/// # use leptos_sweetalert::*;
+/// # use leptos::*;
+/// use leptos_dom::html::{HtmlElement, AnyElement};
+///
+/// // It has to derive from Clone, Copy,
+/// // and PartialEq, but not necessarily
+/// // from Debug.
+/// #[derive(Debug, PartialEq, Clone, Copy)]
+/// pub struct CustomIcon(&'static str);
+///
+/// impl CustomIcon {
+///     pub const MY_ICON: Self = Self("custom");
+///
+///     // The built-in icons return an svg,
+///     // but you're free to return whatever you want,
+///     // however you should take a look at the CSS.
+///     fn get_custom_icon_html() -> HtmlElement<AnyElement> {
+///         (view! { <div /> })
+///         .into_view()
+///         .into_html_element()
+///         .unwrap()
+///     }
+/// }
+///
+/// impl SwalIconLike for CustomIcon {
+///     fn get_icon_element(&self) -> HtmlElement<AnyElement> {
+///         CustomIcon::get_custom_icon_html()
+///         // If you had multiple icons, you'd match all of them.
+///         // If you match all values but have to provide a default branch,
+///         // then just return a div like I did above in the function.
+///         // Note that `SwalIcon::none_icon()` is public.
+///     }
+///     
+///     // Since an icon must have a default value,
+///     // we need a way to know if a given value
+///     // is the default one. Knowing that the default
+///     // means "don't display an icon", then if this function
+///     // returns "false", it means no icon should be displayed.
+///     //
+///     // Note: you don't have to implement it, since `true`
+///     // is the default return value for this method.
+///     //
+///     // SwalIcon implements it and checks if `self` is
+///     // `SwalIcon::NONE`. If it is, it returns `false`,
+///     // otherwise it returns `true`.
+///     fn is_defined(&self) -> bool {
+///         true
+///     }
+/// }
+///
+/// // Since an Icon is not mandatory, but Rust needs a value,
+/// // then we need to give Rust a default one in case none is
+/// // provided manually.
+/// impl Default for CustomIcon {
+///     fn default() -> Self {
+///         // It's quite useful to set your own default value,
+///         // because in the case where you just have one icon
+///         // in your struct, then if you just specify your
+///         // struct type as the generic parameter `I`,
+///         // then this icon here will be chosen if
+///         // none is manually provided.
+///         Self::MY_ICON
+///     }
+/// }
+/// ```
+pub trait SwalIconLike {
+    /// The HTML Element of the icon to add into
+    /// the view when building the Swal.
+    fn get_icon_element(&self) -> HtmlElement<AnyElement>;
+
+    /// Whether or not an icon should be displayed.
+    /// If `self` corresponds to the default value,
+    /// then it means no icon should be displayed.
+    ///
+    /// You don't have to implement this function,
+    /// since it returns `true` by default.
+    ///
+    /// [SwalIcon](`#SwalIcon`) implements it and check
+    /// if `self` is the same as `SwalIcon::NONE`.
+    /// If it is, then don't display an icon (returning `false`).
+    fn is_defined(&self) -> bool {
+        true
+    }
+}
+
 /// Defines an icon to be displayed in the Swal.
 /// Use the pre-built ones to make sure you don't
 /// accidentially make a mistake in the name of an icon.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SwalIcon(&'static str);
 
 impl SwalIcon {
@@ -712,25 +790,6 @@ impl SwalIcon {
     /// Shows no icon.
     /// It is the default icon that a Swal will use.
     pub const NONE: Self = Self("NONE");
-}
-
-impl std::fmt::Display for SwalIcon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl SwalIcon {
-    pub fn get_icon_element(&self) -> HtmlElement<AnyElement> {
-        match self {
-            &SwalIcon::SUCCESS => SwalIcon::success_icon(),
-            &SwalIcon::WARNING => SwalIcon::warning_icon(),
-            &SwalIcon::QUESTION => SwalIcon::question_icon(),
-            &SwalIcon::ERROR => SwalIcon::error_icon(),
-            &SwalIcon::INFO => SwalIcon::info_icon(),
-            _ => SwalIcon::none_icon(),
-        }
-    }
 
     fn success_icon() -> HtmlElement<AnyElement> {
         (view! {
@@ -803,11 +862,41 @@ impl SwalIcon {
         .expect("Could not create Warning Icon")
     }
 
-    fn none_icon() -> HtmlElement<AnyElement> {
+    /// Displays nothing when no icon is needed.
+    pub fn none_icon() -> HtmlElement<AnyElement> {
         (view! { <div /> })
             .into_view()
             .into_html_element()
             .expect("Could not display empty icon")
+    }
+}
+
+impl std::fmt::Display for SwalIcon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl SwalIconLike for SwalIcon {
+    fn get_icon_element(&self) -> HtmlElement<AnyElement> {
+        match self {
+            &SwalIcon::SUCCESS => SwalIcon::success_icon(),
+            &SwalIcon::WARNING => SwalIcon::warning_icon(),
+            &SwalIcon::QUESTION => SwalIcon::question_icon(),
+            &SwalIcon::ERROR => SwalIcon::error_icon(),
+            &SwalIcon::INFO => SwalIcon::info_icon(),
+            _ => SwalIcon::none_icon(),
+        }
+    }
+
+    fn is_defined(&self) -> bool {
+        self != &SwalIcon::NONE
+    }
+}
+
+impl Default for SwalIcon {
+    fn default() -> Self {
+        SwalIcon::NONE
     }
 }
 
@@ -820,7 +909,7 @@ mod tests {
         let opts = SwalOptions::<&str>::default();
         assert_eq!(opts.title, "");
         assert_eq!(opts.text, "");
-        assert_eq!(opts.icon, &SwalIcon::NONE);
+        assert_eq!(opts.icon, SwalIcon::NONE);
         assert_eq!(opts.show_confirm_button, true);
     }
 
@@ -833,29 +922,29 @@ mod tests {
 
     #[test]
     fn test_basic_icon() {
-        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::ERROR);
-        assert_eq!(opts.icon, &SwalIcon::ERROR);
+        let opts = SwalOptions::basic_icon("Hello", SwalIcon::ERROR);
+        assert_eq!(opts.icon, SwalIcon::ERROR);
     }
 
     #[test]
     fn test_common() {
-        let opts = SwalOptions::<&str>::common("Hello", "World", &SwalIcon::ERROR);
+        let opts = SwalOptions::common("Hello", "World", SwalIcon::ERROR);
         assert_eq!(opts.title, "Hello");
         assert_eq!(opts.text, "World");
-        assert_eq!(opts.icon, &SwalIcon::ERROR);
+        assert_eq!(opts.icon, SwalIcon::ERROR);
     }
 
     #[test]
     fn test_has_icon() {
-        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::SUCCESS);
-        assert!(opts.has_icon());
-        let opts = SwalOptions::<&str>::basic_icon("Hello", &SwalIcon::NONE);
-        assert!(!opts.has_icon());
+        let opts = SwalOptions::basic_icon("Hello", SwalIcon::SUCCESS);
+        assert!(opts.icon.is_defined());
+        let opts = SwalOptions::basic_icon("Hello", SwalIcon::NONE);
+        assert!(!opts.icon.is_defined());
     }
 
     #[test]
     fn test_has_text() {
-        let opts = SwalOptions::<&str>::common("Hello", "Some text", &SwalIcon::INFO);
+        let opts = SwalOptions::common("Hello", "Some text", SwalIcon::INFO);
         assert!(opts.has_text());
         let opts = SwalOptions::<&str>::basic("Hello");
         assert!(!opts.has_text());
@@ -865,7 +954,7 @@ mod tests {
     fn test_has_title() {
         let opts = SwalOptions::<&str>::basic("Hello");
         assert!(opts.has_title());
-        let opts = SwalOptions {
+        let opts = SwalOptions::<&str> {
             title: "",
             text: "Hello",
             ..SwalOptions::default()
@@ -879,7 +968,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_pre_confirm() {
-        let opts = SwalOptions {
+        let opts = SwalOptions::<&str> {
             title: "Confirm this!!",
             pre_confirm: || {
                 assert!(false);
@@ -892,7 +981,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_pre_deny() {
-        let opts = SwalOptions {
+        let opts = SwalOptions::<&str> {
             title: "Deny this!!",
             pre_deny: || {
                 assert!(false);

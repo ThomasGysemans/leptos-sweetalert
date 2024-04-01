@@ -16,7 +16,7 @@ fn App() -> impl IntoView {
         Swal::fire(SwalOptions {
             title: "This is a title",
             text: "This is some text",
-            icon: &SwalIcon::SUCCESS,
+            icon: SwalIcon::SUCCESS,
             confirm_button_text: "LETS GO",
             show_cancel_button: true,
             show_deny_button: true,
@@ -27,7 +27,7 @@ fn App() -> impl IntoView {
             },
             pre_deny: || {
                 // Same as "pre_confirm" but for the "Deny" button.
-                Swal::fire(SwalOptions {
+                Swal::fire(SwalOptions::<&str> {
                     title: "You denied!",
                     then: |result: SwalResult| {
                         // This will get executed after the "then"
@@ -55,7 +55,7 @@ fn App() -> impl IntoView {
         Swal::fire(SwalOptions {
             title: "This is a warning",
             text: "It cannot be closed automatically. Use the Confirm button",
-            icon: &SwalIcon::WARNING,
+            icon: SwalIcon::WARNING,
             show_deny_button: true,
             deny_button_text: "Don't click that",
 
@@ -78,15 +78,15 @@ fn App() -> impl IntoView {
     };
 
     let error = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", &SwalIcon::ERROR));
+        Swal::fire(SwalOptions::basic_icon("This is a title", SwalIcon::ERROR));
     };
 
     let info = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", &SwalIcon::INFO));
+        Swal::fire(SwalOptions::basic_icon("This is a title", SwalIcon::INFO));
     };
 
     let question = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", &SwalIcon::QUESTION));
+        Swal::fire(SwalOptions::basic_icon("This is a title", SwalIcon::QUESTION));
     };
 
     view! {
