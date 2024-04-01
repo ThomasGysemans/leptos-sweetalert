@@ -92,7 +92,7 @@ impl SwalResult {
             value: true,
             is_denied: false,
             is_dismissed: false,
-            dismiss: None, 
+            dismiss: None,
         }
     }
 
@@ -365,6 +365,7 @@ where
 
 #[allow(non_snake_case)]
 pub mod Swal {
+    use std::cell::RefCell;
     use std::time::Duration;
 
     use crate::SwalIcon;
@@ -380,6 +381,10 @@ pub mod Swal {
     #[allow(unused)]
     use log::info;
 
+    thread_local! {
+        static TRANSITION_DURATION: RefCell<f32> = const { RefCell::new(-1.0) };
+    }
+
     /// Creates a Sweet Alert with the options defined in `opt`.
     /// See the docs for [SwalOptions](`#SwalOptions`) to know how to use it.
     pub fn fire<S>(opt: SwalOptions<S>)
@@ -387,8 +392,23 @@ pub mod Swal {
         S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
     {
         if let Some(swal) = get_swal() {
-            swal.remove();
+            // It has to be unsynced so that the current Swal can
+            // finish closing and the DOM update itself.
+            set_timeout(move || {
+                open(opt);
+            }, Duration::from_secs_f32(0.01 + get_transition_duration(&swal)));
+        } else {
+            open(opt);
         }
+    }
+
+    /// Creates the Swal, adds it to the DOM and sets its aria-hidden
+    /// attribute to "false" so that the animation can start once the
+    /// DOM was updated.
+    fn open<S>(opt: SwalOptions<S>)
+    where
+        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+    {
         document()
             .body()
             .expect("Could not find body")
@@ -475,20 +495,27 @@ pub mod Swal {
     /// Gets the value of the "transition-duration" CSS property.
     /// It is used to remove the Swal from the DOM once the animation is over.
     fn get_transition_duration(el: &Element) -> f32 {
-        let css_value = window()
-            .expect("Could not get window")
-            .get_computed_style(&el)
-            .expect("Could not get computed style of Swal")
-            .expect("Could not get computed style of Swal")
-            .get_property_value("transition-duration");
-        if let Ok(css_value) = css_value {
-            css_value
-                .get(0..css_value.len() - 1)
-                .expect("Invalid CSS value for transition duration of Swal")
-                .parse::<f32>()
-                .expect("Could not parse transition duration of Swal")
+        let duration = TRANSITION_DURATION.with_borrow(|t| *t);
+        if duration == -1.0 {
+            let css_value = window()
+                .expect("Could not get window")
+                .get_computed_style(&el)
+                .expect("Could not get computed style of Swal")
+                .expect("Could not get computed style of Swal")
+                .get_property_value("transition-duration");
+            if let Ok(css_value) = css_value {
+                let result = css_value
+                    .get(0..css_value.len() - 1)
+                    .expect("Invalid CSS value for transition duration of Swal")
+                    .parse::<f32>()
+                    .expect("Could not parse transition duration of Swal");
+                TRANSITION_DURATION.with(|t| *t.borrow_mut() = result);
+                result
+            } else {
+                0.0
+            }
         } else {
-            0.0
+            duration
         }
     }
 

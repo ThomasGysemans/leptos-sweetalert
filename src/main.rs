@@ -23,7 +23,7 @@ fn App() -> impl IntoView {
                 info!("Confirmed !!");
             },
             pre_deny: || {
-                info!("Denied !!!");
+                Swal::fire(SwalOptions::basic("OH MY GOD YOU DENIED !!"));
             },
             ..SwalOptions::default()
         });
