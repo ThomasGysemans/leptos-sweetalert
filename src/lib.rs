@@ -427,7 +427,20 @@ pub mod Swal {
                 get_swal()
                     .unwrap()
                     .set_attribute("aria-hidden", "false")
-                    .expect("Could not set aria-hidden of Swal")
+                    .expect("Could not set aria-hidden of Swal");
+                let focusables = get_focusable_buttons();
+                if focusables.len() > 0 {
+                    focusables[0]
+                        .focus()
+                        .expect("Could not focus first button of Swal");
+                }
+                // get_confirm_button()
+                //     .get_with_index(0)
+                //     .expect("Could not focus 'confirm button'")
+                //     .dyn_ref::<web_sys::HtmlElement>()
+                //     .expect("Invalid confirm button")
+                //     .focus()
+                //     .expect("Could not focus confirm button");
             },
             Duration::from_secs_f32(0.01),
         );
@@ -538,6 +551,42 @@ pub mod Swal {
     /// the expected button.
     pub fn get_cancel_button() -> HtmlCollection {
         document().get_elements_by_class_name("swal-cancel-button")
+    }
+
+    /// Gets the focusable buttons in the Swal.
+    pub fn get_focusable_buttons() -> Vec<web_sys::HtmlElement> {
+        let mut vec: Vec<web_sys::HtmlElement> = Vec::new();
+        if let Some(swal) = get_swal() {
+            let container = swal
+                .first_element_child()
+                .expect("Incorrect Swal container structure");
+            let buttons = container
+                .last_element_child()
+                .expect("Incorrect HTML structure")
+                .children();
+            for i in 0..buttons.length() {
+                let button = buttons
+                    .get_with_index(i)
+                    .expect("Missing button in Swal")
+                    .dyn_into::<web_sys::HtmlElement>()
+                    .expect("Invalid button in Swal");
+                if is_focusable_button(&button) {
+                    vec.push(button);
+                }
+            }
+        }
+        vec
+    }
+
+    /// Checks if a button is focusable.
+    fn is_focusable_button(element: &web_sys::HtmlElement) -> bool {
+        element.tag_name() == "BUTTON"
+            && !element.has_attribute("disabled")
+            && element
+                .style()
+                .get_property_value("display")
+                .unwrap_or("none".to_string())
+                != "none"
     }
 
     /// Gets the value of the "transition-duration" CSS property.

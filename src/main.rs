@@ -86,7 +86,14 @@ fn App() -> impl IntoView {
     };
 
     let question = move |_| {
-        Swal::fire(SwalOptions::basic_icon("This is a title", SwalIcon::QUESTION));
+        Swal::fire(SwalOptions {
+            title: "This is a question",
+            text: "There is no confirmation button here",
+            show_confirm_button: false,
+            show_deny_button: true,
+            icon: SwalIcon::QUESTION,
+            ..SwalOptions::default()
+        });
     };
 
     view! {
