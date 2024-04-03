@@ -446,6 +446,9 @@ pub mod Swal {
     }
 
     /// Allows the user to close the alert by pressing the Escape key.
+    /// It also holds the focus within the swal, preventing the user from
+    /// focusing elements that are not inside the alert.
+    ///
     /// This method must be called only once, otherwise duplicated event
     /// listeners will be created and attached to the window, which is
     /// pointless and reduces performance.
