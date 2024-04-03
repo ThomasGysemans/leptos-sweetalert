@@ -381,6 +381,9 @@ pub mod Swal {
         /// from closing the popup even by pressing the Escape key
         /// or by clicking on the backdrop.
         static AUTO_CLOSE: RefCell<bool> = const { RefCell::new(true) };
+
+        /// The element that had the focus before opening the Swal.
+        static PREVIOUSLY_FOCUSED: RefCell<Option<web_sys::HtmlElement>> = const { RefCell::new(None) }; 
     }
 
     /// Creates a Sweet Alert with the options defined in `opt`.
@@ -422,6 +425,9 @@ pub mod Swal {
                     .expect("Could not parse Swal to HTML"),
             )
             .expect("Could not append Swal to body");
+        if let Some(active_element) = get_active_element() {
+            set_previously_focused_element(active_element);
+        }
         set_timeout(
             || {
                 get_swal()
@@ -434,13 +440,6 @@ pub mod Swal {
                         .focus()
                         .expect("Could not focus first button of Swal");
                 }
-                // get_confirm_button()
-                //     .get_with_index(0)
-                //     .expect("Could not focus 'confirm button'")
-                //     .dyn_ref::<web_sys::HtmlElement>()
-                //     .expect("Invalid confirm button")
-                //     .focus()
-                //     .expect("Could not focus confirm button");
             },
             Duration::from_secs_f32(0.01),
         );
@@ -456,7 +455,7 @@ pub mod Swal {
     /// It returns a handle that you can use to manually remove the event listener
     /// by calling `remove()` on the return value. You probably won't need it but it
     /// is there in case you need it.
-    pub fn init_escape_key_handler() -> leptos_dom::helpers::WindowListenerHandle {
+    pub fn init_key_handlers() -> leptos_dom::helpers::WindowListenerHandle {
         window_event_listener(ev::keydown, |ev| {
             if is_open() {
                 let code = ev.code();
@@ -464,9 +463,66 @@ pub mod Swal {
                     if AUTO_CLOSE.with_borrow(|a| *a) {
                         close(Some(SwalResult::canceled(SwalDismissReason::Esc)));
                     }
+                } else if code.eq("Tab") {
+                    let focusables = get_focusable_buttons();
+                    let mut index: usize = 0;
+                    if let Some(active_element) = document().active_element() {
+                        let active_element = active_element
+                            .dyn_ref::<web_sys::HtmlElement>()
+                            .expect("Invalid active element");
+                        for i in 0..focusables.len() {
+                            if focusables[i].is_same_node(Some(active_element)) {
+                                index = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    ev.prevent_default();
+
+                    if ev.shift_key() {
+                        if index == 0 {
+                            index = focusables.len() - 1;
+                        } else {
+                            index -= 1;
+                        }
+                    } else {
+                        index = (index + 1) % focusables.len();
+                    }
+
+                    focusables[index]
+                        .focus()
+                        .expect("Could not focus next element");
+
+                    info!("Tab was pressed");
                 }
             }
         })
+    }
+
+    /// Gets the active element, meaning the element that has the focus.
+    /// It returns a `web_sys::HtmlElement` so as to be able to focus it again.
+    pub fn get_active_element() -> Option<web_sys::HtmlElement> {
+        let active = document().active_element();
+        if let Some(active) = active {
+            match active.dyn_into::<web_sys::HtmlElement>() {
+                Ok(valid) => Some(valid),
+                Err(_) => None
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Sets the element that should receive the focus when the Swal closes.
+    pub fn set_previously_focused_element(element: web_sys::HtmlElement) {
+        PREVIOUSLY_FOCUSED.with(|c| *c.borrow_mut() = Some(element));
+    }
+
+    /// Forgets the element that should receive the focus when the Swal closes.
+    /// It means that `None` is used to overwrite the variable storing it.
+    pub fn forget_previously_focused_element() {
+        PREVIOUSLY_FOCUSED.with(|c| *c.borrow_mut() = None);
     }
 
     /// Checks if the Sweet Alert is currently open.
@@ -509,6 +565,14 @@ pub mod Swal {
                 },
                 Duration::from_secs_f32(get_transition_duration(&swal)),
             );
+            PREVIOUSLY_FOCUSED.with(|c| { 
+                let elt = c.borrow();
+                if elt.is_some() {
+                    let _ = elt.as_ref().unwrap().focus();
+                    drop(elt); // to avoid double borrow
+                    *c.borrow_mut() = None;
+                }
+            });
             true
         } else {
             false
