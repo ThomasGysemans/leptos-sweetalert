@@ -403,14 +403,22 @@ pub mod Swal {
         };
 
         (view! {
-            <div id="swal" on:click=on_backdrop_clicked class="swal-backdrop" class:swal-no-animation={!opt.animation} aria-hidden="true">
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="swal-title"
+                id="swal"
+                on:click=on_backdrop_clicked class="swal-backdrop"
+                class:swal-no-animation={!opt.animation}
+                aria-hidden="true"
+            >
                 <div _ref=swal_container_ref class="swal-container">
                     <Show when=move || has_icon>
                         <div class="swal-container-icon fade-icon">
                             {opt.icon.get_icon_element()}
                         </div>
                     </Show>
-                    <strong>{opt.title}</strong>
+                    <strong id="swal-title">{opt.title}</strong>
                     <Show when=move || has_text>
                         <p>{opt.text}</p>
                     </Show>
