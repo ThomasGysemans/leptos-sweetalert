@@ -47,11 +47,12 @@
         color: $swal-text-color;
         font-size: $swal-title-font-size;
         text-align: center;
+        margin: 20px 0;
     }
 
     // the text (description)
     &>p {
-        margin: 20px 0;
+        margin: 0 0 20px 0;
         text-align: center;
         color: $swal-text-color;
         font-size: $swal-text-font-size;

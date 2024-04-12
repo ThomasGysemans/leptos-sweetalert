@@ -408,7 +408,8 @@ pub mod Swal {
                 aria-modal="true"
                 aria-labelledby="swal-title"
                 id="swal"
-                on:click=on_backdrop_clicked class="swal-backdrop"
+                on:click=on_backdrop_clicked
+                class="swal-backdrop"
                 class:swal-no-animation={!opt.animation}
                 aria-hidden="true"
             >
