@@ -50,7 +50,7 @@ As you can see in the example above, the options you give to the `fire()` method
 
 The example above displays a popup that looks like this:
 
-![Demo](./screenshots/leptos-sweetalert-demo.mp4)
+![Demo](./screenshots/leptos-sweetalert-demo.gif)
 
 For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/).
 
