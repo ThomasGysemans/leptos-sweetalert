@@ -19,7 +19,7 @@ pub struct SwalResult {
     pub value: bool,
 
     /// The dismissal reason, see [SwalDismissReason](`#SwalDismissReason`).
-    /// It's optional because if the popup is confirmed, then it wasn't dismissed,
+    /// It's optional because if the popup is confirmed or denied, then it wasn't dismissed,
     /// so no reason to specify a dismiss reason.
     pub dismiss: Option<SwalDismissReason>,
 }

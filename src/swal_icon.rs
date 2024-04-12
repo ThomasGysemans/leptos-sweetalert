@@ -40,7 +40,7 @@ use leptos_dom::HtmlElement;
 ///         // If you had multiple icons, you'd match all of them.
 ///         // If you match all values but have to provide a default branch,
 ///         // then just return a div like I did above in the function.
-///         // Note that `SwalIcon::none_icon()` is public.
+///         // Note that `SwalIcon::none_icon()` does exactly that and it's public.
 ///     }
 ///     
 ///     // Since an icon must have a default value,

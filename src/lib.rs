@@ -29,19 +29,16 @@ pub mod Swal {
 
     thread_local! {
         /// The duration of the transition that opens and closes the swal.
-        /// It is stored this way to avoid re-doing the calculations again and again
+        /// It is stored this way to avoid re-doing the calculations 
         /// every time that a swal is being opened or closed.
         static TRANSITION_DURATION: RefCell<f32> = const { RefCell::new(-1.0) };
 
         /// This is a copy of the "then" callback that was given to the current alert.
         /// The point of this variable is to be able to execute the callback when the alert
-        /// gets closed by something other than the "Cancel" button.
+        /// gets closed by the Escape key or by clicking on the backdrop.
         static THEN_CALLBACK: RefCell<Option<fn(SwalResult)>> = const { RefCell::new(None) };
 
         /// The "auto_close" parameter of the current options.
-        /// It has to be saved because we want to stop the user
-        /// from closing the popup even by pressing the Escape key
-        /// or by clicking on the backdrop.
         static AUTO_CLOSE: RefCell<bool> = const { RefCell::new(true) };
 
         /// The element that had the focus before opening the Swal.
@@ -183,7 +180,6 @@ pub mod Swal {
     }
 
     /// Forgets the element that should receive the focus when the Swal closes.
-    /// It means that `None` is used to overwrite the variable storing it.
     pub fn forget_previously_focused_element() {
         PREVIOUSLY_FOCUSED.with(|c| *c.borrow_mut() = None);
     }

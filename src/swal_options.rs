@@ -3,30 +3,30 @@ use crate::SwalResult;
 use crate::SwalIcon;
 
 /// Defines the parameters of a Sweet Alert.
-/// It uses a generic parameter to allow you to use
-/// either a string slices or Strings for the value
-/// of some parameters.
+/// It uses generic parameters to simplify the use
+/// of the crate. The first one (`S`) defines the type for all
+/// text fields and the second one (`I`) defines the type for the icon.
 ///
 /// # Example
 ///
 /// ```
 /// # use leptos_sweetalert::*;
 ///
-/// // All three examples below do the exact same thing.
-///
 /// // Use methods to reduce the amount
 /// // of fields you have to manually assign
 /// //
-/// // In this case, the generic parameter `S` cannot
-/// // be deduced from the parameter (not sure why).
-/// // However the second parameter `I` can, which
-/// // defaults to `SwalIcon` (and ultimately to `SwalIcon::NONE`).
+/// // The default types of the generic parameters
+/// // cannot be used if at least one of them isn't
+/// // explicitly defined. Therefore, if you do not
+/// // specify an icon, then you have to use the syntax below.
+/// // The default icon is `SwalIcon::NONE` (which displays no icon).
 /// let opt = SwalOptions::<&str>::basic("This is a title");
 ///
 /// // Look at the methods for a better developer experience.
 /// // However, if you want to fully customize the parameters
 /// // in a way that the methods doesn't allow you to, then use:
 /// let opt = SwalOptions::<&str> {
+///     // This is the exact same as using the `basic` method.
 ///     title: "This is a title",
 ///     ..SwalOptions::default()
 /// };
@@ -49,7 +49,7 @@ where
 
     /// An icon to display above the title.
     /// By default, there is no icon, meaning
-    /// the value of this property is `&SwalIcon::NONE`.
+    /// the value of this property is `SwalIcon::NONE`.
     pub icon: I,
 
     /// Should the default confirmation button be displayed?
@@ -83,8 +83,8 @@ where
     pub pre_deny: fn(),
 
     /// Function to execute when an alert ends.
-    /// It will always get called no matter how
-    /// the alert was dismissed.
+    /// It will not get called if no reason was given to the 
+    /// `Swal::close()` method (which allows you to close the popup programmatically).
     pub then: fn(SwalResult),
 
     /// Should the alert close itself when a button is pressed
