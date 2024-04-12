@@ -52,6 +52,8 @@ The example above displays a popup that looks like this:
 
 ![Demo](./screenshots/leptos-sweetalert-demo.gif)
 
+> **NOTE**: there may have been some changes in the styles of the popup since this demo was first made.
+
 For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/).
 
 ## Generic types of SwalOptions
