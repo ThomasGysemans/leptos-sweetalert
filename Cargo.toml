@@ -13,4 +13,4 @@ keywords = ["leptos", "swal", "sweetalert", "modal", "popup", "alert"]
 categories = ["wasm", "web-programming"]
 
 [dependencies]
-leptos = { version = "0.6.9", features = ["csr"] }
+leptos = { version = "0.6.11", features = ["csr"] }
