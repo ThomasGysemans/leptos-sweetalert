@@ -9,7 +9,7 @@ description = "An unofficial remake of SweetAlert for the Leptos web framework"
 authors = ["ThomasGysemans<support@sciencesky.fr>"]
 repository = "https://github.com/ThomasGysemans/leptos_sweetalert"
 readme = "README.md"
-keywords = ["leptos", "swal", "sweetalert", "modal", "popup", "alert"]
+keywords = ["leptos", "swal", "sweetalert", "modal", "popup"]
 categories = ["wasm", "web-programming"]
 
 [dependencies]
