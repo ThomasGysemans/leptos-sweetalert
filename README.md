@@ -36,7 +36,7 @@ fn App() -> impl IntoView {
             confirm_button_text: "LETS GO",
             show_cancel_button: true,
             show_deny_button: true,
-            ..SwalOptions::default(),
+            ..SwalOptions::default()
         });
     };
 
@@ -111,10 +111,10 @@ fn App() -> impl IntoView {
             pre_confirm: || {
                 Swal::fire(SwalOptions {
                     title: "Confirmed !",
-                    ..SwalOptions::default(),
+                    ..SwalOptions::default()
                 });
             },
-            ..SwalOptions::default(),
+            ..SwalOptions::default()
         });
     };
 
@@ -174,7 +174,7 @@ fn App() -> impl IntoView {
                 // this callback is called after `pre_confirm`,
                 // only when the Swal is closing.
             },
-            ..SwalOptions::default(),
+            ..SwalOptions::default()
         });
     };
 
@@ -192,7 +192,7 @@ To customize the behavior of the popup when performing asynchronous actions note
 
 ## What about inputs?
 
-SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported and it is unlikely that it will be anytime soon due to my real-life work that takes all of my time. If you wish to include this feature, the source code is well-documented and if you manage to do implement it then feel free to create a merge request presenting your work.
+SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good example that does further into details.
 
 ## What about Toasts?
 
@@ -205,6 +205,16 @@ You can create your own icons. There is already a full explanation in the docume
 ## Accessibility concerns
 
 The popup follows the guidelines specified on [accede-web.com](https://www.accede-web.com/en/guidelines/rich-interface-components/modal-windows/).
+
+To make sure the focus remains in the popup, all focusable elements within the popup must match this CSS query selector:
+
+```
+*:is(a[href], button, input, textarea, select, details):not([disabled]):not([aria-hidden=true]):not([inert]), [tabindex]:not([tabindex='-1'])
+```
+
+> Note that [inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert) will not work as expected. If you want to make several elements inert, then apply the attribute to each of them, but not to a common parent.
+
+> Note that elements with "display" set to "none" are also ignored.
 
 ## Contributing
 
