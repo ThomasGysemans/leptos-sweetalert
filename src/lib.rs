@@ -29,7 +29,7 @@ pub mod Swal {
 
     thread_local! {
         /// The duration of the transition that opens and closes the swal.
-        /// It is stored this way to avoid re-doing the calculations 
+        /// It is stored this way to avoid re-doing the calculations
         /// every time that a swal is being opened or closed.
         static TRANSITION_DURATION: RefCell<f32> = const { RefCell::new(-1.0) };
 
@@ -93,7 +93,7 @@ pub mod Swal {
                     .unwrap()
                     .set_attribute("aria-hidden", "false")
                     .expect("Could not set aria-hidden of Swal");
-                let focusables = get_focusable_buttons();
+                let focusables = get_focusables();
                 if focusables.len() > 0 {
                     focusables[0]
                         .focus()
@@ -126,7 +126,11 @@ pub mod Swal {
                         close(Some(SwalResult::canceled(SwalDismissReason::Esc)));
                     }
                 } else if code.eq("Tab") {
-                    let focusables = get_focusable_buttons();
+                    let focusables = get_focusables();
+                    if focusables.len() == 0 {
+                        return;
+                    }
+
                     let mut index: usize = 0;
                     if let Some(active_element) = document().active_element() {
                         let active_element = active_element
@@ -277,41 +281,32 @@ pub mod Swal {
     }
 
     /// Gets the focusable buttons in the Swal.
-    pub fn get_focusable_buttons() -> Vec<web_sys::HtmlElement> {
-        let mut vec: Vec<web_sys::HtmlElement> = Vec::new();
+    pub fn get_focusables() -> Vec<web_sys::HtmlElement> {
+        let mut vec = Vec::new();
         if let Some(swal) = get_swal() {
-            let container = swal
-                .first_element_child()
-                .expect("Incorrect Swal container structure");
-            let buttons = container
-                .last_element_child()
-                .expect("Incorrect HTML structure")
-                .children();
-            for i in 0..buttons.length() {
-                let button = buttons
-                    .get_with_index(i)
-                    .expect("Missing button in Swal")
+            let all = swal
+                .query_selector_all("*:is(a[href], button, input, textarea, select, details):not([disabled]):not([aria-hidden=true]):not([inert]), [tabindex]:not([tabindex='-1'])")
+                .expect("Could not retrieve the focusable elements");
+            for i in 0..all.length() {
+                let el = all
+                    .get(i)
+                    .unwrap()
                     .dyn_into::<web_sys::HtmlElement>()
-                    .expect("Invalid button in Swal");
-                if is_focusable_button(&button) {
-                    vec.push(button);
+                    .unwrap();
+                if !has_display_none(&el) {
+                    vec.push(el);
                 }
             }
         }
         vec
     }
 
-    /// Checks if a button is focusable.
-    fn is_focusable_button(element: &web_sys::HtmlElement) -> bool {
-        element.tag_name() == "BUTTON"
-            && !element.has_attribute("disabled")
-            && !element.has_attribute("inert")
-            && element.get_attribute("tabindex").unwrap_or("0".to_string()) != "-1"
-            && element
-                .style()
-                .get_property_value("display")
-                .unwrap_or("none".to_string())
-                != "none"
+    fn has_display_none(element: &web_sys::HtmlElement) -> bool {
+        element
+            .style()
+            .get_property_value("display")
+            .unwrap_or("none".to_string())
+            == "none"
     }
 
     /// Gets the value of the "transition-duration" CSS property.
