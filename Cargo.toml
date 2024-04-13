@@ -1,8 +1,16 @@
 workspace = { members = ["example"] }
+
 [package]
 name = "leptos_sweetalert"
 version = "1.0.0"
 edition = "2021"
+license = "MIT"
+description = "An unofficial remake of SweetAlert for the Leptos web framework"
+authors = ["ThomasGysemans<support@sciencesky.fr>"]
+repository = "https://github.com/ThomasGysemans/leptos_sweetalert"
+readme = "README.md"
+keywords = ["leptos", "swal", "sweetalert", "modal", "popup", "alert"]
+categories = ["wasm", "web-programming"]
 
 [dependencies]
 leptos = { version = "0.6.9", features = ["csr"] }
