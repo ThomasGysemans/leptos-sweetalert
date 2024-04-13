@@ -50,7 +50,7 @@ The example above displays a popup that looks like this:
 
 > **NOTE**: there may have been some changes in the styles of the popup since this demo was first made.
 
-For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/).
+For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/crates/leptos_sweetalert).
 
 ## Styles
 
@@ -219,7 +219,7 @@ SweetAlert comes with "toasts" which are small notifications appearing in a corn
 
 ## Create your own icons
 
-You can create your own icons. There is already a full explanation in the documentation on [crates.io](https://crates.io/).
+You can create your own icons. There is already a full explanation in the documentation on [crates.io](https://crates.io/crates/leptos_sweetalert).
 
 ## Accessibility concerns
 
