@@ -61,7 +61,7 @@ For more info on how to use this crate, please see the examples and the Rust doc
 It's important to note that in order to make the use of the popup easier for the developer the `SwalOptions` struct is generic:
 
 ```rust
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct SwalOptions<S = &'static str, I = SwalIcon>
 where
     S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,

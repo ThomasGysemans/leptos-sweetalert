@@ -87,7 +87,7 @@ pub trait SwalIconLike {
     /// You don't have to implement this function,
     /// since it returns `true` by default.
     ///
-    /// [SwalIcon](`#SwalIcon`) implements it and check
+    /// [`SwalIcon`] implements it and check
     /// if `self` is the same as `SwalIcon::NONE`.
     /// If it is, then don't display an icon (returning `false`).
     fn is_defined(&self) -> bool {

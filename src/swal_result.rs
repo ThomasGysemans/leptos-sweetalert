@@ -10,7 +10,7 @@ pub struct SwalResult {
     pub is_denied: bool,
 
     /// The "Cancel" button was clicked, the dismiss will be
-    /// [SwalDismissReason.Cancel](`#SwalDismissReason.Cancel`)
+    /// [`SwalDismissReason.Cancel`]
     pub is_dismissed: bool,
 
     /// The value from the popup, possible values:
@@ -18,7 +18,7 @@ pub struct SwalResult {
     /// - `false` for denied popups
     pub value: bool,
 
-    /// The dismissal reason, see [SwalDismissReason](`#SwalDismissReason`).
+    /// The dismissal reason, see [`SwalDismissReason`].
     /// It's optional because if the popup is confirmed or denied, then it wasn't dismissed,
     /// so no reason to specify a dismiss reason.
     pub dismiss: Option<SwalDismissReason>,

@@ -1,6 +1,7 @@
-use leptos_sweetalert::*;
 use leptos::*;
+use leptos_sweetalert::*;
 use log::info;
+use web_sys::wasm_bindgen::JsCast;
 
 pub fn main() {
     let _ = console_log::init_with_level(log::Level::Debug);
@@ -71,7 +72,10 @@ fn App() -> impl IntoView {
                 info!("This is executed every time the Deny button is pressed, but the popup remains.");
             },
             then: |result: SwalResult| {
-                info!("Swal was manually closed by the 'confirm' button and the result is {:?}", result);
+                info!(
+                    "Swal was manually closed by the 'confirm' button and the result is {:?}",
+                    result
+                );
             },
             ..SwalOptions::default()
         });
@@ -88,10 +92,21 @@ fn App() -> impl IntoView {
     let question = move |_| {
         Swal::fire(SwalOptions {
             title: "This is a question",
-            text: "There is no confirmation button here",
-            show_confirm_button: false,
-            show_deny_button: true,
+            text: "What is your name ?",
             icon: SwalIcon::QUESTION,
+            show_confirm_button: true,
+            body: view! { <input id="name-input" style="margin-bottom: 30px" /> }.into_view(),
+            then: |_| {
+                let input = document()
+                    .get_element_by_id("name-input")
+                    .unwrap()
+                    .dyn_into::<web_sys::HtmlInputElement>()
+                    .unwrap();
+                Swal::fire(SwalOptions::<String> {
+                    title: format!("Your name is {}", input.value()),
+                    ..SwalOptions::default()
+                });
+            },
             ..SwalOptions::default()
         });
     };
@@ -100,7 +115,6 @@ fn App() -> impl IntoView {
         <div>
             <h2>"EXAMPLES"</h2>
             <div>
-                <p>"A basic message"</p>
                 <button on:click=success>"Try success!"</button>
                 <button on:click=warning>"Try warning !"</button>
                 <button on:click=error>"Try error !"</button>

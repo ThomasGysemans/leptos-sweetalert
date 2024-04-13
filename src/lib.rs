@@ -46,10 +46,10 @@ pub mod Swal {
     }
 
     /// Creates a Sweet Alert with the options defined in `opt`.
-    /// See the docs for [SwalOptions](`#SwalOptions`) to know how to use it.
+    /// See the docs for [`SwalOptions`] to know how to use it.
     pub fn fire<S, I>(opt: SwalOptions<S, I>)
     where
-        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        S: AsRef<str> + Clone + Default + leptos::IntoView + 'static,
         I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         if let Some(swal) = get_swal() {
@@ -71,7 +71,7 @@ pub mod Swal {
     /// DOM was updated.
     fn open<S, I>(opt: SwalOptions<S, I>)
     where
-        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        S: AsRef<str> + Clone + Default + leptos::IntoView + 'static,
         I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         document()
@@ -161,7 +161,7 @@ pub mod Swal {
     }
 
     /// Gets the active element, meaning the element that has the focus.
-    /// It returns a `web_sys::HtmlElement` so as to be able to focus it again.
+    /// It returns a [`web_sys::HtmlElement`] so as to be able to focus it again.
     pub fn get_active_element() -> Option<web_sys::HtmlElement> {
         let active = document().active_element();
         if let Some(active) = active {
@@ -343,7 +343,7 @@ pub mod Swal {
 
     fn SwalComponent<S, I>(opt: SwalOptions<S, I>) -> HtmlElement<AnyElement>
     where
-        S: AsRef<str> + Clone + Copy + Default + leptos::IntoView + 'static,
+        S: AsRef<str> + Clone + Default + leptos::IntoView + 'static,
         I: SwalIconLike + Default + Clone + Copy + 'static,
     {
         let swal_container_ref = create_node_ref::<Div>();
@@ -363,10 +363,14 @@ pub mod Swal {
             }
         };
 
-        let has_icon = opt.icon.is_defined();
-        let has_text = opt.has_text();
         let then_callback = opt.then.clone();
         let auto_close = opt.auto_close.clone();
+
+        let has_icon = opt.icon.is_defined();
+        let has_text = opt.has_text();
+        let has_confirm_btn_text = opt.has_confirm_button_text();
+        let has_deny_btn_text = opt.has_deny_button_text();
+        let has_cancel_btn_text = opt.has_cancel_button_text();
 
         // Here we copy the "then" callback and store it as a static variable.
         // The point of doing this is that it's the only way to detect whether or not
@@ -421,30 +425,40 @@ pub mod Swal {
                     </Show>
                     <strong id="swal-title">{opt.title}</strong>
                     <Show when=move || has_text>
-                        <p>{opt.text}</p>
+                        <p>{opt.text.clone()}</p>
                     </Show>
+                    {opt.body}
                     <div>
-                        <Show when=move || opt.show_confirm_button>
-                            <button type="button" class="swal-confirm-button" on:click=on_confirm>
-                                <Show when=move || { opt.has_confirm_button_text() } fallback=|| view! { "Ok" }>
-                                    { opt.confirm_button_text }
-                                </Show>
-                             </button>
-                        </Show>
-                        <Show when=move || opt.show_deny_button>
-                            <button type="button" class="swal-deny-button" on:click=on_deny>
-                                <Show when=move || { opt.has_deny_button_text() } fallback=|| view! { "Deny" }>
-                                    { opt.deny_button_text }
-                                </Show>
-                             </button>
-                        </Show>
-                        <Show when=move || opt.show_cancel_button>
-                            <button type="button" class="swal-cancel-button" on:click=on_cancel>
-                                <Show when=move || { opt.has_cancel_button_text() } fallback=|| view! { "Cancel" }>
-                                    { opt.cancel_button_text }
-                                </Show>
-                             </button>
-                        </Show>
+                        {match opt.show_confirm_button {
+                            true => view! {
+                                <button type="button" class="swal-confirm-button" on:click=on_confirm>
+                                    <Show when=move || { has_confirm_btn_text } fallback=|| view! { "Ok" }>
+                                        { opt.confirm_button_text.clone() }
+                                    </Show>
+                                 </button>
+                            }.into_view(),
+                            false => view! {}.into_view(),
+                        }}
+                        {match opt.show_deny_button {
+                            true => view! {
+                                <button type="button" class="swal-deny-button" on:click=on_deny>
+                                    <Show when=move || { has_deny_btn_text } fallback=|| view! { "Deny" }>
+                                        { opt.deny_button_text.clone() }
+                                    </Show>
+                                 </button>
+                            }.into_view(),
+                            false => view! {}.into_view(),
+                        }}
+                        {match opt.show_cancel_button {
+                            true => view! {
+                                <button type="button" class="swal-cancel-button" on:click=on_cancel>
+                                    <Show when=move || { has_cancel_btn_text } fallback=|| view! { "Cancel" }>
+                                        { opt.cancel_button_text.clone() }
+                                    </Show>
+                                 </button>
+                            }.into_view(),
+                            false => view! {}.into_view(),
+                        }}
                     </div>
                 </div>
             </div>

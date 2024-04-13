@@ -1,6 +1,7 @@
+use crate::SwalIcon;
 use crate::SwalIconLike;
 use crate::SwalResult;
-use crate::SwalIcon;
+use leptos::*;
 
 /// Defines the parameters of a Sweet Alert.
 /// It uses generic parameters to simplify the use
@@ -31,10 +32,10 @@ use crate::SwalIcon;
 ///     ..SwalOptions::default()
 /// };
 /// ```
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct SwalOptions<S = &'static str, I = SwalIcon>
 where
-    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    S: AsRef<str> + Clone + Default + leptos::IntoView,
     I: SwalIconLike + Default + Clone + Copy,
 {
     /// The title of the alert.
@@ -83,7 +84,7 @@ where
     pub pre_deny: fn(),
 
     /// Function to execute when an alert ends.
-    /// It will not get called if no reason was given to the 
+    /// It will not get called if no reason was given to the
     /// `Swal::close()` method (which allows you to close the popup programmatically).
     pub then: fn(SwalResult),
 
@@ -102,11 +103,13 @@ where
     /// as well as the icon animations.
     /// Defaults to `true`.
     pub animation: bool,
+
+    pub body: View,
 }
 
 impl<S, I> Default for SwalOptions<S, I>
 where
-    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    S: AsRef<str> + Clone + Default + leptos::IntoView,
     I: SwalIconLike + Default + Clone + Copy,
 {
     fn default() -> Self {
@@ -125,13 +128,14 @@ where
             then: |_| {},
             auto_close: true,
             animation: true,
+            body: View::default(),
         }
     }
 }
 
 impl<S, I> SwalOptions<S, I>
 where
-    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    S: AsRef<str> + Clone + Default + leptos::IntoView,
     I: SwalIconLike + Default + Clone + Copy,
 {
     /// Creates Swal options for a simple alert with just a title.
