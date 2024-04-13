@@ -64,7 +64,7 @@ It's important to note that in order to make the use of the popup easier for the
 #[derive(Debug, Clone)]
 pub struct SwalOptions<S = &'static str, I = SwalIcon>
 where
-    S: AsRef<str> + Clone + Copy + Default + leptos::IntoView,
+    S: AsRef<str> + Clone + Default + leptos::IntoView,
     I: SwalIconLike + Default + Clone + Copy,
 {
     // ...
@@ -192,7 +192,7 @@ To customize the behavior of the popup when performing asynchronous actions note
 
 ## What about inputs?
 
-SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good example that does further into details.
+SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good example that goes further into details.
 
 ## What about Toasts?
 
