@@ -62,9 +62,12 @@ Of course, without any styles the popup won't look good. Default styles and them
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+      <!-- The core styles are necessary: -->
       <link data-trunk rel="scss" rel="stylesheet" href="../styles/sweetalert-core.scss" />
-      <!-- This is an optional theme. By default you don't need this. -->
+      <!-- This is an optional theme. By default you don't need this: -->
       <link data-trunk rel="scss" rel="stylesheet" href="../styles/sweetalert-theme-borderless.scss" />
+
       <title>SweetAlert for Leptos demo</title>
   </head>
   <body>
