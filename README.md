@@ -214,7 +214,7 @@ To customize the behavior of the popup when performing asynchronous actions note
 
 ## What about inputs?
 
-SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good [example](./example/src/main.rs) that goes further into details.
+SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good [example](./example/src/main.rs#L92) that goes further into details.
 
 ## What about Toasts?
 
