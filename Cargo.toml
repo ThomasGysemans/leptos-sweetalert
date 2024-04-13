@@ -2,7 +2,7 @@ workspace = { members = ["example"] }
 
 [package]
 name = "leptos_sweetalert"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 license = "MIT"
 description = "An unofficial remake of SweetAlert for the Leptos web framework"
