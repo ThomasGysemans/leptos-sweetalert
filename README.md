@@ -6,10 +6,6 @@ My repo is a crate that allows you to use something similar in the [Leptos](http
 
 > **NOTE**: This is not official. The SweetAlert team did not create this repo. I just wanted to be able to use SweetAlert in Leptos therefore I tried to re-create it myself. IT IS NOT EXACTLY THE SAME THING. I did not simply copy the CSS, I wrote it myself since my goal is not to have a perfect replica of SweetAlert, but to simplify the work for people that would like to have something similar. It is very easy to modify yourself, and if you want to customize it then feel free to simply copy the source files and the CSS files into your project.
 
-## Disclaimer
-
-This is not ready for production yet. The repo currently holds a [main.rs](./src/main.rs) and its only purpose is to help me test the CSS. When I'm done I will create a proper example and remove the unnecessary dependencies from [Cargo.toml](./Cargo.toml).
-
 ## How to use
 
 First, you'd need to initialize the event handlers that allow the users to dismiss the Swal using the Escape key. It is also responsible for restricting the focus within the popup.
@@ -55,6 +51,26 @@ The example above displays a popup that looks like this:
 > **NOTE**: there may have been some changes in the styles of the popup since this demo was first made.
 
 For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/).
+
+## Styles
+
+Of course, without any styles the popup won't look good. Default styles and themes are provided for you in [styles](./styles/). Use the stylesheets in your `index.html` file:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link data-trunk rel="scss" rel="stylesheet" href="../styles/sweetalert-core.scss" />
+      <!-- This is an optional theme. By default you don't need this. -->
+      <link data-trunk rel="scss" rel="stylesheet" href="../styles/sweetalert-theme-borderless.scss" />
+      <title>SweetAlert for Leptos demo</title>
+  </head>
+  <body>
+  </body>
+</html>
+```
 
 ## Generic types of SwalOptions
 
