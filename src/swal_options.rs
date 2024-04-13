@@ -104,6 +104,8 @@ where
     /// Defaults to `true`.
     pub animation: bool,
 
+    /// A custom view to be added into the generated HTML of the popup.
+    /// This view is inserted below the description and above the buttons.
     pub body: View,
 }
 

@@ -50,7 +50,7 @@ The example above displays a popup that looks like this:
 
 > **NOTE**: there may have been some changes in the styles of the popup since this demo was first made.
 
-For more info on how to use this crate, please see the examples and the Rust documentation on [crates.io](https://crates.io/crates/leptos_sweetalert).
+For more info on how to use this crate, please see the [examples](./example/src/main.rs) and the Rust documentation on [crates.io](https://crates.io/crates/leptos_sweetalert).
 
 ## Styles
 
@@ -99,6 +99,7 @@ Swal::fire(SwalOptions {
     // However you can't combine both in the same struct.
     title: some_title,
     icon: SwalIcon::SUCCESS,
+    ..SwalOptions::default()
 });
 ```
 
@@ -109,6 +110,7 @@ In the example above both generic types are deduced (the string-like type, `S`, 
 // Use whatever type suits you as long as it respects the constraints defined above.
 Swal::fire(SwalOptions::<&str> {
     title: "Hello",
+    ..SwalOptions::default()
 });
 ```
 
@@ -128,7 +130,7 @@ fn App() -> impl IntoView {
             // It's prefixed with "pre" because it gets executed before the
             // popup closes, not after (see the 'then' field in the doc on crates.io).
             pre_confirm: || {
-                Swal::fire(SwalOptions {
+                Swal::fire(SwalOptions::<&str> {
                     title: "Confirmed !",
                     ..SwalOptions::default()
                 });
@@ -154,6 +156,7 @@ Swal::close(None);
 Swal::fire(SwalOptions {
     title: "Hello",
     icon: SwalIcon::SUCCESS,
+    ..SwalOptions::default()
 });
 ```
 
@@ -205,13 +208,13 @@ fn App() -> impl IntoView {
 
 To customize the behavior of the popup when performing asynchronous actions note that some useful methods exist to help you do that:
 
-- `get_confirm_button()`
-- `get_deny_button()`
-- `get_cancel_button()`
+- [get_confirm_button()](https://docs.rs/leptos_sweetalert/latest/leptos_sweetalert/Swal/fn.get_confirm_button.html)
+- [get_deny_button()](https://docs.rs/leptos_sweetalert/latest/leptos_sweetalert/Swal/fn.get_deny_button.html)
+- [get_cancel_button()](https://docs.rs/leptos_sweetalert/latest/leptos_sweetalert/Swal/fn.get_cancel_button.html)
 
 ## What about inputs?
 
-SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good example that goes further into details.
+SweetAlert allows you to use inputs directly in the popup. As of now, this feature is not supported the same way as SweetAlert does. To use inputs, you'd have to build the component on your own and insert it in the popup via the `body` field of `SwalOptions`. There is a good [example](./example/src/main.rs) that goes further into details.
 
 ## What about Toasts?
 
@@ -219,7 +222,7 @@ SweetAlert comes with "toasts" which are small notifications appearing in a corn
 
 ## Create your own icons
 
-You can create your own icons. There is already a full explanation in the documentation on [crates.io](https://crates.io/crates/leptos_sweetalert).
+You can create your own icons. There is already a full explanation in the documentation on [crates.io](https://docs.rs/leptos_sweetalert/1.0.0/leptos_sweetalert/trait.SwalIconLike.html).
 
 ## Accessibility concerns
 
@@ -231,9 +234,9 @@ To make sure the focus remains in the popup, all focusable elements within the p
 *:is(a[href], button, input, textarea, select, details):not([disabled]):not([aria-hidden=true]):not([inert]), [tabindex]:not([tabindex='-1'])
 ```
 
-> Note that [inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert) will not work as expected. If you want to make several elements inert, then apply the attribute to each of them, but not to a common parent.
+> **Note** that [inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert) will not work as expected. If you want to make several elements inert, then apply the attribute to each of them, but not to a common parent.
 
-> Note that elements with "display" set to "none" are also ignored.
+> **Note** that elements with "display" set to "none" are also ignored.
 
 ## Contributing
 
